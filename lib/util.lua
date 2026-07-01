@@ -16,4 +16,20 @@ function util.sleep(seconds)
 	end
 end
 
+-- locks current terminal inputs
+-- (only Unix)
+function util.lockInput()
+	if util.isWindows() then return end
+
+	os.execute("stty -icanon -echo")
+end
+
+-- unlocks previously locked terminal inputs
+-- (only Unix)
+function util.unlockInput()
+	if util.isWindows() then return end
+
+	os.execute("stty icanon echo")
+end
+
 return util
