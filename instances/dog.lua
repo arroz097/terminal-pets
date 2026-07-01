@@ -46,6 +46,8 @@ function dog:bark()
 	end
 	self.energy = math.max(0, self.energy - 1)
 	print(string.format("%s has barked!", self.name))
+
+	self.changed:Fire(string.format("[%s]: did a bark", os.date("%H:%M:%S")))
 end
 
 ---@param item string
@@ -60,12 +62,16 @@ function dog:fetch(item)
 	self.energy = math.max(0, self.energy - 2)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s fetched the %s%s%s!", self.name, ansi.text.italic, item, ansi.text.reset))
+
+	self.changed:Fire(string.format("[%s]: fetched %s", os.date("%H:%M:%S"), item))
 end
 
 -- a dog attempt to find something.
 -- -3 energy
 -- -1 hunger
 function dog:dig()
+	util.lockInput()
+
 	local state = self.energy <= 0 and "energy" or self.hunger <= 0 and "hunger" or nil
 	local stateColor = state == "energy" and ansi.color.cyan or state == "hunger" and ansi.color.yellow
 	if state then
@@ -99,10 +105,16 @@ function dog:dig()
 		table.insert(self.items, {item = item, rarity = rarity, color = color})
 	end
 
+	self.changed:Fire(string.format("[%s]: digged and found %s", os.date("%H:%M:%S"), item))
+
+	util.unlockInput()
+
 	util.sleep(1)
 end
 
 function dog:howl()
+	util.lockInput()
+
 	if self.energy > 4 and self.hunger > 4 then
 		print(string.format("%s has no need to howl!", self.name))
 		return
@@ -116,6 +128,10 @@ function dog:howl()
 	end
 
 	io.write("\n".. ansi.cursor.show)
+
+	self.changed:Fire(string.format("[%s]: did a howl", os.date("%H:%M:%S")))
+
+	util.unlockInput()
 end
 
 function dog:showItems()
@@ -123,12 +139,12 @@ function dog:showItems()
 		print(string.format("%s has no item to show up!", self.name))
 		return
 	end
-	print("\n-----------------")
-	print(string.format("%s%s%s items:%s", ansi.text.underline, ansi.text.bold, self.name, ansi.text.reset))
-	for _, value in ipairs(self.items) do
-		print(string.format("%s%s%s [%s]", value.color, value.item, ansi.text.reset, value.rarity))
+	print("\n==================")
+	print(string.format("| %s%s%s items:%s", ansi.text.underline, ansi.text.bold, self.name, ansi.text.reset))
+	for _, entry in ipairs(self.items) do
+		print(string.format("| %s%s%s [%s]", entry.color, entry.item, ansi.text.reset, entry.rarity))
 	end
-	print("-----------------\n")
+	print("==================\n")
 end
 
 return dog

@@ -29,6 +29,8 @@ function cat:meow()
 	self.energy = math.max(0, self.energy - 1)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s has meow!", self.name))
+
+	self.changed:Fire(string.format("[%s]: did a meow", os.date("%H:%M:%S")))
 end
 
 -- default scratch.
@@ -42,6 +44,8 @@ function cat:scratch()
 	self.energy = math.max(0, self.energy - 1)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s scratches something!", self.name))
+
+	self.changed:Fire(string.format("[%s]: did some scratch", os.date("%H:%M:%S")))
 end
 
 -- better sleep.
@@ -57,6 +61,8 @@ function cat:nap()
 	self.energy = math.min(10, self.energy + 3)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s took a nap!", self.name))
+
+	self.changed:Fire(string.format("[%s]: took a nap", os.date("%H:%M:%S")))
 end
 
 -- when happy.
@@ -66,6 +72,8 @@ function cat:purr()
 		return
 	end
 	print(string.format("%s purrs.. purrrrr~", self.name))
+
+	self.changed:Fire(string.format("[%s]: performed purr", os.date("%H:%M:%S")))
 end
 
 -- when low energy.
@@ -75,6 +83,8 @@ function cat:hiss()
 		return
 	end
 	print(string.format("%s is hissing!", self.name))
+
+	self.changed:Fire(string.format("[%s]: hissed", os.date("%H:%M:%S")))
 end
 
 return cat
