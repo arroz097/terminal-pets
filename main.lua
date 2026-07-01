@@ -16,6 +16,8 @@ jorge:showItems()
 fabricio:sleep()
 fabricio:meow()
 
+fabricio:eat()
+
 jorge:bark()
 jorge:dig()
 jorge:dig()
@@ -34,8 +36,14 @@ fabricio:nap()
 fabricio:getStats()
 
 jorge:dig()
+
+fabricio:getLogs()
+
+jorge:dig()
 jorge:fetch("tilapia")
 jorge:getStats()
 jorge:bark()
 jorge:showItems()
 jorge:howl()
+
+jorge:getLogs()
