@@ -3,8 +3,6 @@ local items = require("lib.items")
 local util = require("lib.util")
 local ansi = require("lib.ansi")
 
-math.randomseed(os.time())
-
 ---@class dog : animal
 ---@field items table
 local dog = setmetatable({}, {__index = animal})
@@ -20,6 +18,7 @@ function dog.new(name)
 	self.items = {}
 
 	print(string.format("%s%s%s has spawned!", ansi.color.white, name, ansi.text.reset))
+	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
 
 	return self
 end
@@ -31,7 +30,7 @@ local function getRarity()
 	if roll <= 70 then
 		return "common", ansi.color.white
 	elseif roll <= 95 then
-		return "rare", ansi.color.blue
+		return "rare", ansi.color.brightBlue
 	else
 		return "legendary", ansi.color.brightYellow
 	end
@@ -44,6 +43,7 @@ function dog:bark()
 		print(string.format("%s has no %senergy%s to bark!", self.name, ansi.color.cyan, ansi.text.reset))
 		return
 	end
+
 	self.energy = math.max(0, self.energy - 1)
 	print(string.format("%s has barked!", self.name))
 
@@ -59,6 +59,7 @@ function dog:fetch(item)
 		print(string.format("%s has no %senergy%s to fetch \"%s\"!", self.name, ansi.color.cyan, item, ansi.text.reset))
 		return
 	end
+
 	self.energy = math.max(0, self.energy - 2)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s fetched the %s%s%s!", self.name, ansi.text.italic, item, ansi.text.reset))
@@ -70,14 +71,16 @@ end
 -- -3 energy
 -- -1 hunger
 function dog:dig()
-	util.lockInput()
 
 	local state = self.energy <= 0 and "energy" or self.hunger <= 0 and "hunger" or nil
 	local stateColor = state == "energy" and ansi.color.cyan or state == "hunger" and ansi.color.yellow
 	if state then
 		print(string.format("%s has no %s%s%s to dig!", self.name, stateColor, state, ansi.text.reset))
+		self.changed:Fire(string.format("[%s]: tried to dig while lacking %s", os.date("%H:%M:%S"), state))
 		return
 	end
+
+	util.lockInput()
 
 	local rarity, color = getRarity()
 	local pool = items[rarity]
@@ -113,12 +116,13 @@ function dog:dig()
 end
 
 function dog:howl()
-	util.lockInput()
-
 	if self.energy > 4 and self.hunger > 4 then
 		print(string.format("%s has no need to howl!", self.name))
+		self.changed:Fire(string.format("[%s]: tried howl", os.date("%H:%M:%S")))
 		return
 	end
+
+	util.lockInput()
 
 	io.write(ansi.cursor.hide)
 	for i = 1, 50 do
@@ -139,12 +143,34 @@ function dog:showItems()
 		print(string.format("%s has no item to show up!", self.name))
 		return
 	end
-	print("\n==================")
-	print(string.format("| %s%s%s items:%s", ansi.text.underline, ansi.text.bold, self.name, ansi.text.reset))
+
+	local entries = {}
+
 	for _, entry in ipairs(self.items) do
-		print(string.format("| %s%s%s [%s]", entry.color, entry.item, ansi.text.reset, entry.rarity))
+		local str = string.format("%s [%s]", entry.item, entry.rarity)
+		table.insert(entries, {text = str, item = entry.item, rarity = entry.rarity, color = entry.color})
 	end
-	print("==================\n")
+
+	local title = self.name .. " items"
+	local bigString = #title
+
+	for _, entry in ipairs(entries) do
+		if #entry.text > bigString then
+			bigString = #entry.text
+		end
+	end
+
+	bigString = math.max(bigString, 30) + 4
+
+	io.write(string.format("\n%s\n", string.rep("=", bigString)))
+	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4)))
+	print(string.format("%s", string.rep("=", bigString)))
+
+	for _, entry in ipairs(entries) do
+		print(string.format("| %s%s%s [%s] %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, string.rep(" ", (bigString - #entry.text) - 4)))
+	end
+
+	io.write(string.format("%s\n", string.rep("=", bigString)))
 end
 
 return dog
