@@ -1,16 +1,29 @@
 return {
+
+	clear = "\27[2J",
+	clearDown = "\27[J", -- do cursor pra baixo
+
 	text = {
 		bold = "\27[1m",
+		dim = "\27[2m",
 		italic = "\27[3m",
 		underline = "\27[4m",
+		blink = "\27[5m",
+		hidden = "\27[8m",
+		strikethrough = "\27[9m",
 		reset = "\27[0m",
+
 	},
 
 	cursor = {
+		home = "\27[H", -- vai pro topo
 		up = "\27[1A",
 		down = "\27[1B",
+		save = "\27[s",
+		restore = "\27[u",
 		hide = "\27[?25l",
 		show = "\27[?25h",
+		clearLine = "\27[2K",
 	},
 
 	color = {
