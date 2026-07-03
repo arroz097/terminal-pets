@@ -14,6 +14,7 @@ function cat.new(name)
 
 	self.type = "cat"
 	print(string.format("%s%s%s has spawned!", ansi.color.white, name, ansi.text.reset))
+	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
 
 	return self
 end
@@ -24,8 +25,10 @@ end
 function cat:meow()
 	if self.energy <= 0 then
 		print(string.format("%s has no %senergy%s to meow!", self.name, ansi.color.cyan, ansi.text.reset))
+		self.changed:Fire(string.format("[%s]: tried to meow", os.date("%H:%M:%S")))
 		return
 	end
+
 	self.energy = math.max(0, self.energy - 1)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s has meow!", self.name))
@@ -41,6 +44,7 @@ function cat:scratch()
 		print(string.format("%s has no %senergy%s to scratch!", self.name, ansi.color.cyan, ansi.text.reset))
 		return
 	end
+
 	self.energy = math.max(0, self.energy - 1)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s scratches something!", self.name))
@@ -52,15 +56,20 @@ end
 -- +3 energy
 -- -1 hunger
 function cat:nap()
-	local state = self.energy <= 0 and "hunger" or self.hunger <= 0 and "energy" or nil
-	local stateColor = state == "energy" and ansi.color.cyan or state == "hunger" and ansi.color.yellow
-	if state then
-		print(string.format("%s has no %s%s%s to take a nap!", self.name, stateColor, state, ansi.text.reset))
+	if self.hunger <= 0 then
+		print(string.format("%s seems to be %sstarving%s, can't take a nap!", self.name, ansi.color.yellow, ansi.text.reset))
+		self.changed:Fire(string.format("[%s]: tried to nap while starving", os.date("%H:%M:%S")))
 		return
 	end
+
+	if self.energy >= 10 then
+		print(string.format("%s is already max on %senergy%s", self.name, ansi.color.cyan, ansi.text.reset))
+		return
+	end
+
 	self.energy = math.min(10, self.energy + 3)
 	self.hunger = math.max(0, self.hunger - 1)
-	print(string.format("%s took a nap!", self.name))
+	print(string.format("%s took a nap! (%s+3 energy%s)", self.name, ansi.color.cyan, ansi.text.reset))
 
 	self.changed:Fire(string.format("[%s]: took a nap", os.date("%H:%M:%S")))
 end
@@ -69,8 +78,10 @@ end
 function cat:purr()
 	if self.hunger < 5 then
 		print(string.format("%s lacks %shunger%s to purr!", self.name, ansi.color.yellow, ansi.text.reset))
+		self.changed:Fire(string.format("[%s]: tried to purr", os.date("%H:%M:%S")))
 		return
 	end
+
 	print(string.format("%s purrs.. purrrrr~", self.name))
 
 	self.changed:Fire(string.format("[%s]: performed purr", os.date("%H:%M:%S")))
@@ -82,6 +93,7 @@ function cat:hiss()
 		print(string.format("%s is not mad at the moment!", self.name))
 		return
 	end
+
 	print(string.format("%s is hissing!", self.name))
 
 	self.changed:Fire(string.format("[%s]: hissed", os.date("%H:%M:%S")))
