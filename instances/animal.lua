@@ -9,6 +9,7 @@ local signal = require("lib.signal")
 ---@field hunger integer
 ---@field type string
 ---@field logs table
+---@field inventory table
 ---@field changed signal
 local animal = {}
 animal.__index = animal
@@ -38,6 +39,7 @@ function animal.new(name)
 	self.hunger = 10
 	self.type = "none"
 	self.logs = {}
+	self.inventory = {}
 
 	self.changed = signal.new()
 
@@ -47,6 +49,7 @@ function animal.new(name)
 		local shouldAct = math.random(2) -- 50% chance
 
 		if shouldAct ~= 1 then return end
+		if string.find(action, "+1", 1, true) then return end
 
 		if self.energy < 3 then
 			print(string.format("%s %s%s%s", self.name, ansi.text.italic, energyMessages[math.random(#energyMessages)], ansi.text.reset))
@@ -64,6 +67,11 @@ end
 function animal:eat()
 	if self.energy <= 0 then
 		print(string.format("%s doesn't have enough %senergy%s to eat!", self.name, ansi.color.cyan, ansi.text.reset))
+		return
+	end
+
+	if self.hunger >= 10 then
+		print(string.format("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset))
 		return
 	end
 
@@ -99,9 +107,9 @@ function animal:getStats()
 	local title = self.name .. " stats"
 	local bigString = #title
 
-	local energyColor = self.energy > 6 and ansi.color.brightGreen or self.energy > 3 and ansi.color.yellow or ansi.color.red
-	local hungerColor = self.hunger > 6 and ansi.color.brightGreen or self.hunger > 3 and ansi.color.yellow or ansi.color.red
-	local healthColor = self.health > 60 and ansi.color.brightGreen or self.health > 30 and ansi.color.yellow or ansi.color.red
+	local energyColor = self.energy > 6 and ansi.color.brightGreen or self.energy > 3 and ansi.color.brightYellow or ansi.color.red
+	local hungerColor = self.hunger > 6 and ansi.color.brightGreen or self.hunger > 3 and ansi.color.brightYellow or ansi.color.red
+	local healthColor = self.health > 60 and ansi.color.brightGreen or self.health > 30 and ansi.color.brightYellow or ansi.color.red
 
 	local lines = {
 		{ text = "name..: " .. self.name, name = "name..: ", value = self.name,	color = nil },
@@ -159,14 +167,51 @@ function animal:getLogs()
 	print(string.format("%s\n", string.rep("=", bigString)))
 end
 
+function animal:showInventory()
+	if #self.inventory <= 0 then
+		print(string.format("%s has no item to show up!", self.name))
+		return
+	end
+
+	local entries = {}
+
+	for _, entry in ipairs(self.inventory) do
+		local str = string.format("%s [%s]", entry.item, entry.rarity)
+		table.insert(entries, {text = str, item = entry.item, rarity = entry.rarity, color = entry.color})
+	end
+
+	local title = self.name .. " inventory"
+	local bigString = #title
+
+	for _, entry in ipairs(entries) do
+		if #entry.text > bigString then
+			bigString = #entry.text
+		end
+	end
+
+	bigString = math.max(bigString, 30) + 4
+
+	io.write(string.format("\n%s\n", string.rep("=", bigString)))
+	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4)))
+	print(string.format("%s", string.rep("=", bigString)))
+
+	for _, entry in ipairs(entries) do
+		print(string.format("| %s%s%s [%s] %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, string.rep(" ", (bigString - #entry.text) - 4)))
+	end
+
+	io.write(string.format("%s\n", string.rep("=", bigString)))
+end
+
 -- drain current animal hunger.
 function animal:drainHunger()
+	util.lockInput()
 	while self.hunger > 0 do
 		util.sleep(1)
 		self.hunger = math.max(0, self.hunger - 1)
 		print(string.format("%s %shunger%s now is %d", self.name, ansi.color.yellow, ansi.text.reset, self.hunger))
 	end
 	self.changed:Fire(string.format("[%s]: drained hunger", os.date("%H:%M:%S")))
+	util.unlockInput()
 end
 
 return animal
