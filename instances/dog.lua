@@ -4,7 +4,6 @@ local util = require("lib.util")
 local ansi = require("lib.ansi")
 
 ---@class dog : animal
----@field items table
 local dog = setmetatable({}, {__index = animal})
 dog.__index = dog
 
@@ -15,7 +14,6 @@ function dog.new(name)
 	---@cast self dog
 
 	self.type = "dog"
-	self.items = {}
 
 	print(string.format("%s%s%s has spawned!", ansi.color.white, name, ansi.text.reset))
 	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
@@ -91,9 +89,6 @@ function dog:dig()
 
 	io.write(string.format("%s started digging!\n%s", self.name, ansi.cursor.hide))
 
-	-- fazer depois um sistema de input pra ler do usuario, se quer manter tal item achado ou não
-	-- ou descartar o item
-
 	for i = 1, 4 do
 		util.sleep(1)
 		io.write(string.format("digging%s\r", string.rep(".", i)))
@@ -105,10 +100,22 @@ function dog:dig()
 	--print(string.format("%s digged and found %s%s%s!", self.name, color, item, ansi.reset))
 
 	if item ~= "nothing" then
-		table.insert(self.items, {item = item, rarity = rarity, color = color})
+		util.unlockInput()
+		io.write(string.format("keep item \"%s\"? (Y/N)\n", item))
+		local input = io.read()
+
+		if string.lower(input) == "y" then
+			table.insert(self.inventory, {item = item, rarity = rarity, color = color})
+			print(string.format("stored %s", item))
+			self.changed:Fire(string.format("[%s]: found %s", os.date("%H:%M:%S"), item))
+		elseif string.lower(input) == "n" then
+			print(string.format("discarded item \"%s\"", item))
+			self.changed:Fire(string.format("[%s]: discarded %s", os.date("%H:%M:%S"), item))
+		end
+
 	end
 
-	self.changed:Fire(string.format("[%s]: digged and found %s", os.date("%H:%M:%S"), item))
+	--self.changed:Fire(string.format("[%s]: digged and found %s", os.date("%H:%M:%S"), item))
 
 	util.unlockInput()
 
@@ -136,41 +143,6 @@ function dog:howl()
 	self.changed:Fire(string.format("[%s]: did a howl", os.date("%H:%M:%S")))
 
 	util.unlockInput()
-end
-
-function dog:showItems()
-	if #self.items <= 0 then
-		print(string.format("%s has no item to show up!", self.name))
-		return
-	end
-
-	local entries = {}
-
-	for _, entry in ipairs(self.items) do
-		local str = string.format("%s [%s]", entry.item, entry.rarity)
-		table.insert(entries, {text = str, item = entry.item, rarity = entry.rarity, color = entry.color})
-	end
-
-	local title = self.name .. " items"
-	local bigString = #title
-
-	for _, entry in ipairs(entries) do
-		if #entry.text > bigString then
-			bigString = #entry.text
-		end
-	end
-
-	bigString = math.max(bigString, 30) + 4
-
-	io.write(string.format("\n%s\n", string.rep("=", bigString)))
-	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4)))
-	print(string.format("%s", string.rep("=", bigString)))
-
-	for _, entry in ipairs(entries) do
-		print(string.format("| %s%s%s [%s] %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, string.rep(" ", (bigString - #entry.text) - 4)))
-	end
-
-	io.write(string.format("%s\n", string.rep("=", bigString)))
 end
 
 return dog
