@@ -15,10 +15,20 @@ function dog.new(name)
 
 	self.type = "dog"
 
-	print(string.format("%s%s%s has spawned!", ansi.color.white, name, ansi.text.reset))
+	print(string.format("\ncreated %s %s%s%s!", self.type, ansi.color.white, self.name, ansi.text.reset))
 	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
 
 	return self
+end
+
+function dog:getMethods()
+	local blacklist = {new = true, getMethods = true, __index = true}
+	for func in pairs(dog) do
+		if not blacklist[func] then
+			print(func)
+		end
+	end
+	print()
 end
 
 ---@return string rarity
@@ -101,8 +111,12 @@ function dog:dig()
 
 	if item ~= "nothing" then
 		util.unlockInput()
-		io.write(string.format("keep item \"%s\"? (Y/N)\n", item))
-		local input = io.read()
+
+		local input
+		repeat
+			io.write(string.format("keep item \"%s\"? (Y/N)\n", item))
+			input = io.read()
+		until input == "y" or input == "n"
 
 		if string.lower(input) == "y" then
 			table.insert(self.inventory, {item = item, rarity = rarity, color = color})
@@ -118,8 +132,6 @@ function dog:dig()
 	--self.changed:Fire(string.format("[%s]: digged and found %s", os.date("%H:%M:%S"), item))
 
 	util.unlockInput()
-
-	util.sleep(1)
 end
 
 function dog:howl()

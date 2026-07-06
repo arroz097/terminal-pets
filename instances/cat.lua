@@ -13,10 +13,20 @@ function cat.new(name)
 	---@cast self cat
 
 	self.type = "cat"
-	print(string.format("%s%s%s has spawned!", ansi.color.white, name, ansi.text.reset))
+	print(string.format("\ncreated %s %s%s%s!", self.type, ansi.color.white, self.name, ansi.text.reset))
 	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
 
 	return self
+end
+
+function cat:getMethods()
+	local blacklist = {new = true, getMethods = true, __index = true}
+	for func in pairs(cat) do
+		if not blacklist[func] then
+			print(func)
+		end
+	end
+	print()
 end
 
 -- does a classic meow.
