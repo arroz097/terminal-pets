@@ -43,13 +43,19 @@ function animal.new(name)
 
 	self.changed = signal.new()
 
+	local lastEnergy = self.energy
+
 	self.changed:Connect(function(action)
 		table.insert(self.logs, action)
 
 		local shouldAct = math.random(2) -- 50% chance
 
+		if self.energy > lastEnergy then
+			lastEnergy = self.energy
+			return
+		end
+
 		if shouldAct ~= 1 then return end
-		if string.find(action, "+1", 1, true) then return end
 
 		if self.energy < 3 then
 			print(string.format("%s %s%s%s", self.name, ansi.text.italic, energyMessages[math.random(#energyMessages)], ansi.text.reset))
@@ -139,6 +145,7 @@ function animal:getStats()
 	print(string.format("%s\n", string.rep("=", bigString)))
 end
 
+-- shows animal actions history
 function animal:getLogs()
 	if #self.logs <= 0 then
 		print(string.format("%s has no logs history", self.name))
