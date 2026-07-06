@@ -48,12 +48,12 @@ function animal.new(name)
 	self.changed:Connect(function(action)
 		table.insert(self.logs, action)
 
-		local shouldAct = math.random(2) -- 50% chance
+		local energyIncreased = self.energy > lastEnergy
+		lastEnergy = self.energy
 
-		if self.energy > lastEnergy then
-			lastEnergy = self.energy
-			return
-		end
+		if energyIncreased then return end
+
+		local shouldAct = math.random(2) -- 50% chance
 
 		if shouldAct ~= 1 then return end
 
