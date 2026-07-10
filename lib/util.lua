@@ -1,6 +1,5 @@
 local util = {}
 
----@return boolean
 -- returns true if running on Windows
 function util.isWindows()
 	return package.config:sub(1,1) == "\\"
@@ -17,7 +16,7 @@ function util.sleep(seconds)
 end
 
 -- locks current terminal inputs
--- (only Unix)
+-- (Only Unix)
 function util.lockInput()
 	if util.isWindows() then return end
 
@@ -25,11 +24,38 @@ function util.lockInput()
 end
 
 -- unlocks previously locked terminal inputs
--- (only Unix)
+-- (Only Unix)
 function util.unlockInput()
 	if util.isWindows() then return end
 
 	os.execute("stty icanon echo")
+end
+
+---@param s string
+---@return table result
+-- splits a string to n parts
+function util.split(s)
+	local result = {}
+
+	for word in string.gmatch(s, "%S+") do
+		table.insert(result, word)
+	end
+
+	return result
+end
+
+---@param text string
+---@param prefix string
+-- checks if given string starts with chosen prefix
+function util.startstWith(text, prefix)
+	return string.sub(text, 1, #prefix) == prefix
+end
+
+---@param text string
+---@param suffix string
+-- checks if given string ends with chosen suffix
+function util.endsWith(text, suffix)
+	return string.sub(text, -#suffix) == suffix
 end
 
 return util
