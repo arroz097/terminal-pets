@@ -1,4 +1,4 @@
-local animal = require("instances.animal")
+local animal = require("animals.animal")
 local ansi = require("lib.ansi")
 
 ---@class cat : animal
@@ -73,7 +73,7 @@ function cat:nap()
 	end
 
 	if self.energy >= 10 then
-		print(string.format("%s is already max on %senergy%s", self.name, ansi.color.cyan, ansi.text.reset))
+		print(string.format("%s is already max on %senergy%s!", self.name, ansi.color.cyan, ansi.text.reset))
 		return
 	end
 

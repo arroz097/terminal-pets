@@ -1,4 +1,5 @@
-local animal = require("instances.animal")
+local animal = require("animals.animal")
+local registry = require("lib.registry")
 local items = require("lib.items")
 local util = require("lib.util")
 local ansi = require("lib.ansi")
@@ -29,10 +30,19 @@ function fox:getMethods()
 	print()
 end
 
----@param victim animal
-function fox:steal(victim)
+---@param name string
+function fox:steal(name)
+	local victim, err = registry.get(name)
+	if not victim then
+		print(err)
+		return
+	end
+	if victim == self then
+		print("can't steal itself")
+		return
+	end
 	if #victim.inventory <= 0 then
-		print(string.format("%s has no item to apply the steal", victim.name))
+		print(string.format("%s has no item to apply the steal!", victim.name))
 		return
 	end
 

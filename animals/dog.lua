@@ -1,4 +1,4 @@
-local animal = require("instances.animal")
+local animal = require("animals.animal")
 local items = require("lib.items")
 local util = require("lib.util")
 local ansi = require("lib.ansi")
@@ -116,7 +116,7 @@ function dog:dig()
 		repeat
 			io.write(string.format("keep item \"%s\"? (Y/N)\n", item))
 			input = io.read()
-		until input == "y" or input == "n"
+		until string.lower(input) == "y" or string.lower(input) == "n"
 
 		if string.lower(input) == "y" then
 			table.insert(self.inventory, {item = item, rarity = rarity, color = color})
