@@ -1,20 +1,28 @@
 math.randomseed(os.time())
 
 --local socket = require("socket")
+local registry = require("lib.registry")
 local ansi = require("lib.ansi")
 local util = require("lib.util")
 
 local animals = {
-	cat = require("instances.cat"),
-	dog = require("instances.dog"),
-	fox = require("instances.fox"),
+	cat = require("animals.cat"),
+	dog = require("animals.dog"),
+	fox = require("animals.fox"),
+}
+
+local aliases = {
+	stats = "getStats",
+	logs = "getLogs",
+	methods = "getMethods",
+	inventory = "showInventory",
 }
 
 ansi:enterScreen()
 
 print("animal types...: cat, dog, fox\n")
-print("animal commands: eat, sleep, getStats, getLogs, showInventory, drainHunger\n")
-print(string.format("%sgetMethods%s to list current animal actions. \n", ansi.text.italic, ansi.text.reset))
+print("animal commands: eat, sleep, stats, logs, inventory, drainHunger\n")
+print(string.format("%smethods%s to list current animal possible actions. \n", ansi.text.italic, ansi.text.reset))
 
 local animalType
 repeat
@@ -37,18 +45,41 @@ local pet = animals[animalType].new(name)
 print()
 print(string.format("%sexit%s to leave.\n", ansi.text.italic, ansi.text.reset))
 
+registry.add(pet.name, pet)
+
+--[[
+local ok, err = registry.add(pet.name, pet)
+
+if not ok then
+	print(err)
+end
+
+local ok, err = registry.remove("jorgineo")
+
+if not ok then
+	print(err)
+end
+]]
+
 local command
 repeat
 	io.write(string.format("%s action: ", name))
 	io.flush()
 	command = io.read()
 
-	if command == "exit" then
+	local split = util.split(command)
+
+	local action = split[1] or ""
+	local arg = table.concat(split, " ", 2)
+
+	local methodName = aliases[action] or action
+
+	if methodName == "exit" then
 		--
-	elseif command ~= "new" and command ~= "__index" and pet[command] then
-		pet[command](pet)
+	elseif methodName ~= "new" and methodName ~= "__index" and pet[methodName] then
+		pet[methodName](pet, arg)
 	else
-		io.write(string.format("\n\"%s\" is not a valid method of %s %s\n", command, animalType, name))
+		io.write(string.format("\n\"%s\" is not a valid method of %s %s\n", action, animalType, name))
 		io.flush()
 	end
 
