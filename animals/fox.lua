@@ -24,7 +24,11 @@ function fox:getMethods()
 	local blacklist = {new = true, getMethods = true, __index = true}
 	for func in pairs(fox) do
 		if not blacklist[func] then
-			print(func)
+			if func == "steal" then
+				print(func .. " [name]")
+			else
+				print(func)
+			end
 		end
 	end
 	print()

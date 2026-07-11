@@ -25,7 +25,11 @@ function dog:getMethods()
 	local blacklist = {new = true, getMethods = true, __index = true}
 	for func in pairs(dog) do
 		if not blacklist[func] then
-			print(func)
+			if func == "fetch" then
+				print(func .. " [item name]")
+			else
+				print(func)
+			end
 		end
 	end
 	print()
