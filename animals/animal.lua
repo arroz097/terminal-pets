@@ -19,6 +19,7 @@ local hungryMessages = {
 	"is starving!",
 	"could use some food..",
 	"stomach growls..",
+	"licks its lips hungrily..",
 }
 
 local energyMessages = {
@@ -26,6 +27,8 @@ local energyMessages = {
 	"is exhausted..",
 	"needs some rest..",
 	"is running low on energy..",
+	"eyelids grow heavy..",
+	"yawns widely..",
 }
 
 ---@param name string
@@ -66,6 +69,30 @@ function animal.new(name)
 	end)
 
 	return self
+end
+
+---@return table<string, boolean> properties
+-- returns a copy of properties as a set (name: true)
+function animal:getProperties()
+	local dict = {}
+
+	for key, value in pairs(self) do
+		if type(value) ~= "function" then
+			dict[key] = true
+		end
+	end
+
+	return dict
+end
+
+-- outputs current animal self properties
+function animal:showProperties()
+	for key, value in pairs(self) do
+		if type(value) ~= "function" then
+			print(string.format("%s%s = %s%s", ansi.color.white, tostring(key), tostring(value), ansi.text.reset))
+		end
+	end
+	print()
 end
 
 -- eat some food.
