@@ -26,9 +26,9 @@ function dog:getMethods()
 	for func in pairs(dog) do
 		if not blacklist[func] then
 			if func == "fetch" then
-				print(func .. " [item name]")
+				print(string.format("%s%s %s%s", ansi.color.white, func, "[item name]", ansi.text.reset))
 			else
-				print(func)
+				print(string.format("%s%s%s", ansi.color.white, func, ansi.text.reset))
 			end
 		end
 	end
@@ -71,7 +71,10 @@ function dog:fetch(item)
 		print(string.format("%s has no %senergy%s to fetch \"%s\"!", self.name, ansi.color.cyan, item, ansi.text.reset))
 		return
 	end
-
+	if item == "" then
+		print(string.format("nothing valid to %s fetch", self.name))
+		return
+	end
 	self.energy = math.max(0, self.energy - 2)
 	self.hunger = math.max(0, self.hunger - 1)
 	print(string.format("%s fetched the %s%s%s!", self.name, ansi.text.italic, item, ansi.text.reset))
@@ -111,8 +114,6 @@ function dog:dig()
 
 	io.write(string.format("found %s%s%s!%s\n", color, item, ansi.text.reset, ansi.cursor.show))
 
-	--print(string.format("%s digged and found %s%s%s!", self.name, color, item, ansi.reset))
-
 	if item ~= "nothing" then
 		util.unlockInput()
 
@@ -132,8 +133,6 @@ function dog:dig()
 		end
 
 	end
-
-	--self.changed:Fire(string.format("[%s]: digged and found %s", os.date("%H:%M:%S"), item))
 
 	util.unlockInput()
 end

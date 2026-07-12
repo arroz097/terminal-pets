@@ -16,6 +16,7 @@ function fox.new(name)
 
 	self.type = "fox"
 	print(string.format("\ncreated %s %s%s%s!", self.type, ansi.color.white, self.name, ansi.text.reset))
+	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
 
 	return self
 end
@@ -25,9 +26,9 @@ function fox:getMethods()
 	for func in pairs(fox) do
 		if not blacklist[func] then
 			if func == "steal" then
-				print(func .. " [name]")
+				print(string.format("%s%s %s%s", ansi.color.white, func, "[name]", ansi.text.reset))
 			else
-				print(func)
+				print(string.format("%s%s%s", ansi.color.white, func, ansi.text.reset))
 			end
 		end
 	end
@@ -37,6 +38,10 @@ end
 ---@param name string
 function fox:steal(name)
 	local victim, err = registry.get(name)
+	if name == "" then
+		print("no animal found to steal")
+		return
+	end
 	if not victim then
 		print(err)
 		return
@@ -52,6 +57,7 @@ function fox:steal(name)
 
 end
 
+-- tbd
 function fox:hunt()
 
 end

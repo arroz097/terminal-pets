@@ -23,7 +23,7 @@ function cat:getMethods()
 	local blacklist = {new = true, getMethods = true, __index = true}
 	for func in pairs(cat) do
 		if not blacklist[func] then
-			print(func)
+			print(string.format("%s%s%s", ansi.color.white, func, ansi.text.reset))
 		end
 	end
 	print()
