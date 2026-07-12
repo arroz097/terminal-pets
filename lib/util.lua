@@ -20,7 +20,7 @@ end
 function util.lockInput()
 	if util.isWindows() then return end
 
-	os.execute("stty -icanon -echo")
+	os.execute("stty -echo")
 end
 
 -- unlocks previously locked terminal inputs
@@ -28,7 +28,8 @@ end
 function util.unlockInput()
 	if util.isWindows() then return end
 
-	os.execute("stty icanon echo")
+	os.execute("stty echo")
+	os.execute("bash -c 'while read -t 0; do read -n 256 -t 0.01 discard; done < /dev/tty'")
 end
 
 ---@param s string
