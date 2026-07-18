@@ -1,6 +1,7 @@
 local ansi = require("lib.ansi")
 local util = require('lib.util')
 local signal = require("lib.signal")
+local messages = require("lib.messages")
 
 ---@class animal
 ---@field name string
@@ -13,23 +14,6 @@ local signal = require("lib.signal")
 ---@field changed signal
 local animal = {}
 animal.__index = animal
-
-local hungryMessages = {
-	"seems hungry..",
-	"is starving!",
-	"could use some food..",
-	"stomach growls..",
-	"licks its lips hungrily..",
-}
-
-local energyMessages = {
-	"seems tired..",
-	"is exhausted..",
-	"needs some rest..",
-	"is running low on energy..",
-	"eyelids grow heavy..",
-	"yawns widely..",
-}
 
 ---@param name string
 ---@return animal
@@ -47,25 +31,44 @@ function animal.new(name)
 	self.changed = signal.new()
 
 	local lastEnergy = self.energy
+	local lastHunger = self.hunger
 
 	self.changed:Connect(function(action)
 		table.insert(self.logs, action)
 
 		local energyIncreased = self.energy > lastEnergy
+		local hungerIncreased = self.hunger > lastHunger
 		lastEnergy = self.energy
+		lastHunger = self.hunger
 
 		if energyIncreased then return end
+		if hungerIncreased then return end
 
 		local shouldAct = math.random(2) -- 50% chance
+		local chosenMessage = {}
 
-		if shouldAct ~= 1 then return end
+		if not hungerIncreased then
+			local level = messages.level[self.hunger]
+			local message = messages.hunger[level]
 
-		if self.energy < 3 then
-			print(string.format("%s %s%s%s", self.name, ansi.text.italic, energyMessages[math.random(#energyMessages)], ansi.text.reset))
-		elseif self.hunger < 3 then
-			print(string.format("%s %s%s%s", self.name, ansi.text.italic, hungryMessages[math.random(#hungryMessages)], ansi.text.reset))
+			if message then
+				table.insert(chosenMessage, message[math.random(#message)])
+			end
 		end
 
+		if not energyIncreased then
+			local level = messages.level[self.energy]
+			local message = messages.energy[level]
+
+			if message then
+				table.insert(chosenMessage, message[math.random(#message)])
+			end
+		end
+
+		if #chosenMessage == 0 then return end
+		if shouldAct ~= 1 then return end
+
+		print(string.format("%s %s%s%s", self.name, ansi.text.italic, chosenMessage[math.random(#chosenMessage)], ansi.text.reset))
 	end)
 
 	return self
