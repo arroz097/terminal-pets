@@ -11,6 +11,7 @@ local messages = require("lib.messages")
 ---@field type string
 ---@field logs table
 ---@field inventory table
+---@field blacklist table
 ---@field changed signal
 local animal = {}
 animal.__index = animal
@@ -27,6 +28,12 @@ function animal.new(name)
 	self.type = "none"
 	self.logs = {}
 	self.inventory = {}
+
+	self.blacklist = {
+		__index = true,
+		new = true,
+		addItem = true,
+	}
 
 	self.changed = signal.new()
 
@@ -137,6 +144,46 @@ function animal:move()
 
 end
 
+---@param t table
+function animal:addItem(t)
+	if #self.inventory >= 10 then
+		print("inventory is full!")
+		return false
+	end
+
+	table.insert(self.inventory, t)
+
+	return true
+end
+
+---@param name string
+function animal:discard(name)
+	if name == "" then
+		print("no item given to discard")
+		return
+	end
+	if #self.inventory <= 0 and name then
+		print(string.format("\"%s\" is not in the inventory!", name))
+		return
+	end
+
+	local found = false
+
+	for index, entry in ipairs(self.inventory) do
+		if entry.item == name then
+			table.remove(self.inventory, index)
+			print(string.format("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset))
+			self.changed:Fire(string.format("[%s]: discarded \"%s\" from inventory", os.date("%H:%M:%S"), name))
+			found = true
+			break
+		end
+	end
+
+	if not found then
+		print(string.format("\"%s\" is not in the inventory!", name))
+	end
+end
+
 -- return current animal stats.
 function animal:getStats()
 
@@ -175,7 +222,7 @@ function animal:getStats()
 	print(string.format("%s\n", string.rep("=", bigString)))
 end
 
--- shows animal actions history
+-- displays animal actions history
 function animal:getLogs()
 	if #self.logs <= 0 then
 		print(string.format("%s has no logs history", self.name))
@@ -204,6 +251,7 @@ function animal:getLogs()
 	print(string.format("%s\n", string.rep("=", bigString)))
 end
 
+-- displays animal stored items
 function animal:showInventory()
 	if #self.inventory <= 0 then
 		print(string.format("%s has no item to show up!", self.name))
