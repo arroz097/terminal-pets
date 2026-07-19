@@ -23,7 +23,7 @@ local aliases = {
 ansi:enterScreen()
 
 print("animal types...: cat, dog, fox\n")
-print("animal commands: eat, sleep, stats, logs, inventory, drainHunger\n")
+print("animal commands: eat, sleep, stats, logs, inventory, discard [item name], drainHunger\n")
 print("debug commands.: properties\n")
 print(string.format("%smethods%s to list current animal possible actions. \n", ansi.text.italic, ansi.text.reset))
 
@@ -45,8 +45,8 @@ until name ~= ""
 
 --io.write(ansi:moveTo(2, 1), ansi.clearDown)
 local pet = animals[animalType].new(name)
-print()
-print(string.format("%sexit%s to leave.\n", ansi.text.italic, ansi.text.reset))
+
+print(string.format("\n%sexit%s to leave.\n", ansi.text.italic, ansi.text.reset))
 
 local properties = pet:getProperties()
 
@@ -67,7 +67,7 @@ repeat
 
 	if methodName == "exit" then
 		--
-	elseif methodName ~= "new" and methodName ~= "__index" and pet[methodName] and not properties[methodName] then
+	elseif pet[methodName] and not properties[methodName] and not pet.blacklist[methodName] then
 		pet[methodName](pet, arg)
 	else
 		io.write(string.format("\n%s\"%s\"%s is not a valid method of %s %s\n", ansi.text.italic, action, ansi.text.reset, animalType, name))
