@@ -124,14 +124,20 @@ function dog:dig()
 		until string.lower(input) == "y" or string.lower(input) == "n"
 
 		if string.lower(input) == "y" then
-			table.insert(self.inventory, {item = item, rarity = rarity, color = color})
-			print(string.format("stored %s", item))
-			self.changed:Fire(string.format("[%s]: found %s", os.date("%H:%M:%S"), item))
+			local add = self:addItem({item = item, rarity = rarity, color = color})
+
+			if add then
+				print(string.format("stored %s", item))
+				self.changed:Fire(string.format("[%s]: found %s", os.date("%H:%M:%S"), item))
+			else
+				self.changed:Fire(string.format("[%s]: attempted to store item with full inventory", os.date("%H:%M:%S")))
+			end
 		elseif string.lower(input) == "n" then
 			print(string.format("discarded item \"%s\"", item))
 			self.changed:Fire(string.format("[%s]: discarded %s", os.date("%H:%M:%S"), item))
 		end
-
+	else
+		self.changed:Fire(string.format("[%s]: got lucky and found nothing", os.date("%H:%M:%S")))
 	end
 
 	util.unlockInput()
