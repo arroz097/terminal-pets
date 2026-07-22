@@ -18,6 +18,8 @@ function fox.new(name)
 	print(string.format("\ncreated %s %s%s%s!", self.type, ansi.color.white, self.name, ansi.text.reset))
 	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
 
+	self.region = self:startRegion("mountains")
+
 	return self
 end
 
@@ -39,15 +41,17 @@ end
 function fox:steal(name)
 	local victim, err = registry.get(name)
 	if name == "" then
-		print("no animal found to steal")
+		print("no animal given to steal")
 		return
 	end
 	if not victim then
 		print(err)
+		self.changed:Fire(string.format("[%s]: tried to steal non existent animal \"%s\"", os.date("%H:%M:%S"), name))
 		return
 	end
 	if victim == self then
 		print("can't steal itself")
+	        self.changed:Fire(string.format("[%s]: tried to steal itself", os.date("%H:%M:%S")))
 		return
 	end
 	if #victim.inventory <= 0 then
