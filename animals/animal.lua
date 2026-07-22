@@ -15,6 +15,7 @@ local messages = require("lib.messages")
 ---@field blacklist table
 ---@field changed signal
 ---@field region fsm
+---@field maxItems number
 local animal = {}
 animal.__index = animal
 
@@ -27,6 +28,7 @@ function animal.new(name)
 	self.health = 100
 	self.energy = 10
 	self.hunger = 10
+	self.maxItems = 5
 	self.type = "none"
 	self.logs = {}
 	self.inventory = {}
@@ -38,6 +40,7 @@ function animal.new(name)
 		new = true,
 		addItem = true,
 		startRegion = true,
+		hasEnergy = true,
 	}
 
 	self.changed = signal.new()
@@ -86,6 +89,15 @@ function animal.new(name)
 	return self
 end
 
+function animal:hasEnergy()
+	if self.energy <= 0 then
+		print(string.format("no enough %senergy%s!", ansi.color.cyan, ansi.text.reset))
+		return false
+	end
+
+	return true
+end
+
 ---@return table<string, boolean> properties
 -- returns a copy of properties as a set (name: true)
 function animal:getProperties()
@@ -112,9 +124,20 @@ end
 
 -- displays map navigation
 function animal:showMap()
-	print("\nmountains <- forest -> cave")
+	local places = {
+		forest = "forest",
+		lake = "lake",
+		cave = "cave",
+		mountains = "mountains",
+	}
+
+	if places[self.region.state] then
+		places[self.region.state] = string.format("%s%s%s%s", ansi.text.underline, ansi.text.bold, self.region.state, ansi.text.reset)
+	end
+
+	print(string.format("\n%s ← %s → %s", places.mountains, places.forest, places.cave))
 	print("               ↓")
-	print("              lake\n")
+	print(string.format("              %s\n", places.lake))
 end
 
 ---@param initial string
@@ -141,15 +164,12 @@ end
 -- eat some food.
 -- +1 hunger
 function animal:eat()
-	if self.energy <= 0 then
-		print(string.format("%s doesn't have enough %senergy%s to eat!", self.name, ansi.color.cyan, ansi.text.reset))
-		return
-	end
-
 	if self.hunger >= 10 then
 		print(string.format("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset))
 		return
 	end
+
+	if not self:hasEnergy() then return end
 
 	self.energy = math.max(0, self.energy - 1)
 	self.hunger = math.min(10, self.hunger + 1)
@@ -187,6 +207,8 @@ function animal:move(location)
 		return
 	end
 
+	if not self:hasEnergy() then return end
+
 	local to = self.region:dispatch(location)
 
 	if not to then
@@ -201,7 +223,7 @@ end
 
 ---@param t table
 function animal:addItem(t)
-	if #self.inventory >= 10 then
+	if #self.inventory >= self.maxItems then
 		print("inventory is full!")
 		return false
 	end
