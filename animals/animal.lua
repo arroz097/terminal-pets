@@ -1,5 +1,6 @@
 local ansi = require("lib.ansi")
-local util = require('lib.util')
+local util = require("lib.util")
+local fsm = require("lib.fsm")
 local signal = require("lib.signal")
 local messages = require("lib.messages")
 
@@ -13,6 +14,7 @@ local messages = require("lib.messages")
 ---@field inventory table
 ---@field blacklist table
 ---@field changed signal
+---@field region fsm
 local animal = {}
 animal.__index = animal
 
@@ -29,10 +31,13 @@ function animal.new(name)
 	self.logs = {}
 	self.inventory = {}
 
+	self.region = self:startRegion("forest")
+
 	self.blacklist = {
 		__index = true,
 		new = true,
 		addItem = true,
+		startRegion = true,
 	}
 
 	self.changed = signal.new()
@@ -95,14 +100,42 @@ function animal:getProperties()
 	return dict
 end
 
--- outputs current animal self properties
+-- outputs current animal properties
 function animal:showProperties()
 	for key, value in pairs(self) do
 		if type(value) ~= "function" then
-			print(string.format("%s%s = %s%s", ansi.color.white, tostring(key), tostring(value), ansi.text.reset))
+			print(string.format("%s%s: (%s%s)", ansi.color.white, tostring(key), tostring(type(value)), ansi.text.reset))
 		end
 	end
 	print()
+end
+
+-- displays map navigation
+function animal:showMap()
+	print("\nmountains <- forest -> cave")
+	print("               ↓")
+	print("              lake\n")
+end
+
+---@param initial string
+---@return fsm
+function animal:startRegion(initial)
+	local region = fsm.new(initial)
+
+	region:add("forest", "cave", "cave")
+	region:add("cave", "forest", "forest")
+	region:add("forest", "lake", "lake")
+	region:add("lake", "forest", "forest")
+	region:add("forest", "mountains", "mountains")
+	region:add("mountains", "forest", "forest")
+
+	for _, place in ipairs({"forest", "cave", "lake", "mountains"}) do
+		region:onEnter(place, function()
+			print(string.format("%s is now on %s", self.name, self.region.state))
+		end)
+	end
+
+	return region
 end
 
 -- eat some food.
@@ -139,9 +172,31 @@ function animal:sleep()
 	self.changed:Fire(string.format("[%s]: did some sleep", os.date("%H:%M:%S")))
 end
 
---tbd
-function animal:move()
+---@param location string
+function animal:move(location)
+	if location == "" then
+		print("no region given")
+		return
+	end
+	if location == self.region.state then
+		print("already on " .. location)
+		return
+	end
+	if not self.region.transitions[location] then
+		print(location .. " does not exist")
+		return
+	end
 
+	local to = self.region:dispatch(location)
+
+	if not to then
+		print("can't go to " .. location)
+		return
+	end
+
+	self.energy = math.max(0, self.energy - 1)
+
+	self.changed:Fire(string.format("[%s]: moved to %s", os.date("%H:%M:%S"), location))
 end
 
 ---@param t table
@@ -200,6 +255,7 @@ function animal:getStats()
 		{ text = "health: " .. self.health, name = "health: ", value = self.health, color = healthColor },
 		{ text = "energy: " .. self.energy, name = "energy: ", value = self.energy, color = energyColor },
 		{ text = "hunger: " .. self.hunger, name = "hunger: ", value = self.hunger, color = hungerColor },
+		{ text = "region: " .. self.region.state, name = "region: ", value = self.region.state, color = nil},
 	}
 
 	for _, line in ipairs(lines) do
