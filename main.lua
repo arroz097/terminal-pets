@@ -17,13 +17,14 @@ local aliases = {
 	methods = "getMethods",
 	inventory = "showInventory",
 	properties = "showProperties",
-	drainhunger = "drainHunger"
+	drainhunger = "drainHunger",
+	map = "showMap",
 }
 
 ansi:enterScreen()
 
 print("animal types...: cat, dog, fox\n")
-print("animal commands: eat, sleep, stats, logs, inventory, discard [item name], drainHunger\n")
+print("animal commands: eat, sleep, stats, map, logs, inventory, move [region name], discard [item name], drainHunger\n")
 print("debug commands.: properties\n")
 print(string.format("%smethods%s to list current animal possible actions. \n", ansi.text.italic, ansi.text.reset))
 
