@@ -98,6 +98,15 @@ function animal:hasEnergy()
 	return true
 end
 
+function animal:hasHunger()
+	if self.hunger <= 0 then
+		print(string.format("no enough %shunger%s!", ansi.color.yellow, ansi.text.reset))
+		return false
+	end
+
+	return true
+end
+
 ---@return table<string, boolean> properties
 -- returns a copy of properties as a set (name: true)
 function animal:getProperties()
@@ -152,11 +161,13 @@ function animal:startRegion(initial)
 	region:add("forest", "mountains", "mountains")
 	region:add("mountains", "forest", "forest")
 
+	--[[
 	for _, place in ipairs({"forest", "cave", "lake", "mountains"}) do
 		region:onEnter(place, function()
 			print(string.format("%s is now on %s", self.name, self.region.state))
 		end)
 	end
+	]]
 
 	return region
 end
@@ -215,6 +226,20 @@ function animal:move(location)
 		print("can't go to " .. location)
 		return
 	end
+
+	util.lockInput()
+
+	for i = 1, 3 do
+		io.write(ansi.cursor.hide, string.format("moving to %s%s\r", location, string.rep(".", i)))
+		io.flush()
+		util.sleep(1)
+	end
+
+	io.write(ansi.cursor.show)
+	io.flush()
+	print(string.format("%s is now on %s", self.name, self.region.state))
+
+	util.unlockInput()
 
 	self.energy = math.max(0, self.energy - 1)
 
