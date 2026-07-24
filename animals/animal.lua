@@ -50,8 +50,23 @@ function animal.new(name)
 	local lastEnergy = self.energy
 	local lastHunger = self.hunger
 
+	local page = 1
+	local count = 0
+
 	self.changed:Connect(function(action)
-		table.insert(self.logs, action)
+		if count >= 10 then -- limit per page
+			page = page + 1
+			count = 0
+		end
+
+		if not self.logs[page] then
+			self.logs[page] = {}
+		end
+
+		if action then
+			count = count + 1
+			self.logs[page][count] = action
+		end
 
 		local energyIncreased = self.energy > lastEnergy
 		local hungerIncreased = self.hunger > lastHunger
@@ -362,16 +377,34 @@ function animal:getStats()
 end
 
 -- displays animal actions history
-function animal:getLogs()
+---@param page number?
+function animal:getLogs(page)
 	if #self.logs <= 0 then
 		print(string.format("%s has no logs history", self.name))
 		return
 	end
+	if page == "" then
+		page = util.getDictionaryLenght(self.logs)
+	else
+		page = tonumber(page)
+	end
+	if type(page) ~= "number" then
+		print("no number given")
+		return
+	end
+	if not self.logs[page] then
+		print(string.format("page %d does not exist", page))
+		return
+	end
+
+	local totalPages = util.getDictionaryLenght(self.logs)
+
+	io.write(string.format("\npage (%d/%d)", page, totalPages))
 
 	local title = self.name .. " log history"
 	local bigString = #title
 
-	for _, log in ipairs(self.logs) do
+	for _, log in ipairs(self.logs[page]) do
 		if #log > bigString then
 			bigString = #log
 		end
@@ -383,7 +416,7 @@ function animal:getLogs()
 	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4)))
 	print(string.format("%s", string.rep("=", bigString)))
 
-	for _, log in ipairs(self.logs) do
+	for _, log in ipairs(self.logs[page]) do
 		print(string.format("| %s %s|", log, string.rep(" ", (bigString - #log) - 4)))
 	end
 
@@ -420,7 +453,6 @@ function animal:showInventory()
 	io.write(string.format("\n%s\n", string.rep("=", bigString)))
 	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 )))
 	print(string.format("%s", string.rep("=", bigString)))
-
 
 	for _, entry in ipairs(entries) do
 		if not shown[entry.item] then
