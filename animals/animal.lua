@@ -12,7 +12,7 @@ local messages = require("lib.messages")
 ---@field type string
 ---@field logs table
 ---@field inventory table
----@field blacklist table
+---@field private table
 ---@field changed signal
 ---@field region fsm
 ---@field maxItems number
@@ -35,12 +35,14 @@ function animal.new(name)
 
 	self.region = self:startRegion("forest")
 
-	self.blacklist = {
+	self.private = {
 		__index = true,
 		new = true,
 		addItem = true,
 		startRegion = true,
 		hasEnergy = true,
+		hasHunger = true,
+		getTotalItems = true,
 	}
 
 	self.changed = signal.new()
@@ -110,15 +112,15 @@ end
 ---@return table<string, boolean> properties
 -- returns a copy of properties as a set (name: true)
 function animal:getProperties()
-	local dict = {}
+	local property = {}
 
 	for key, value in pairs(self) do
 		if type(value) ~= "function" then
-			dict[key] = true
+			property[key] = true
 		end
 	end
 
-	return dict
+	return property
 end
 
 -- outputs current animal properties
@@ -174,7 +176,8 @@ end
 
 -- eat some food.
 -- +1 hunger
-function animal:eat()
+---@param name string?
+function animal:eat(name)
 	if self.hunger >= 10 then
 		print(string.format("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset))
 		return
@@ -187,6 +190,11 @@ function animal:eat()
 	print(string.format("%s ate food! (%s+1 hunger%s)", self.name, ansi.color.yellow, ansi.text.reset))
 
 	self.changed:Fire(string.format("[%s]: ate food", os.date("%H:%M:%S")))
+end
+
+-- tbd
+function animal:forage()
+
 end
 
 -- basic recovery.
@@ -246,15 +254,28 @@ function animal:move(location)
 	self.changed:Fire(string.format("[%s]: moved to %s", os.date("%H:%M:%S"), location))
 end
 
----@param t table
-function animal:addItem(t)
-	if #self.inventory >= self.maxItems then
+---@param tb table
+function animal:addItem(tb)
+	for _, entry in ipairs(self.inventory) do
+		if entry.item == tb.item then
+			if entry.quantity >= 5 then
+				print("already max stack on " .. tostring(entry.item))
+				return false
+			end
+
+			entry.quantity = math.min(5, (entry.quantity or 1) + 1)
+
+			return true
+		end
+	end
+
+	if self:getTotalItems() >= self.maxItems then
 		print("inventory is full!")
 		return false
 	end
 
-	table.insert(self.inventory, t)
-
+	tb.quantity = 1
+	table.insert(self.inventory, tb)
 	return true
 end
 
@@ -273,7 +294,12 @@ function animal:discard(name)
 
 	for index, entry in ipairs(self.inventory) do
 		if entry.item == name then
-			table.remove(self.inventory, index)
+			entry.quantity = (entry.quantity or 1) - 1
+
+			if entry.quantity <= 0 then
+				table.remove(self.inventory, index)
+			end
+
 			print(string.format("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset))
 			self.changed:Fire(string.format("[%s]: discarded \"%s\" from inventory", os.date("%H:%M:%S"), name))
 			found = true
@@ -284,6 +310,16 @@ function animal:discard(name)
 	if not found then
 		print(string.format("\"%s\" is not in the inventory!", name))
 	end
+end
+
+function animal:getTotalItems()
+	local total = 0
+
+	for _, entry in ipairs(self.inventory) do
+		total = total + (entry.quantity or 1)
+	end
+
+	return total
 end
 
 -- return current animal stats.
@@ -365,11 +401,13 @@ function animal:showInventory()
 
 	for _, entry in ipairs(self.inventory) do
 		local str = string.format("%s [%s]", entry.item, entry.rarity)
-		table.insert(entries, {text = str, item = entry.item, rarity = entry.rarity, color = entry.color})
+		table.insert(entries, {text = str, item = entry.item, rarity = entry.rarity, color = entry.color, quantity = entry.quantity})
 	end
 
 	local title = self.name .. " inventory"
 	local bigString = #title
+
+	local shown = {}
 
 	for _, entry in ipairs(entries) do
 		if #entry.text > bigString then
@@ -380,14 +418,18 @@ function animal:showInventory()
 	bigString = math.max(bigString, 30) + 4
 
 	io.write(string.format("\n%s\n", string.rep("=", bigString)))
-	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4)))
+	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 )))
 	print(string.format("%s", string.rep("=", bigString)))
 
+
 	for _, entry in ipairs(entries) do
-		print(string.format("| %s%s%s [%s] %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, string.rep(" ", (bigString - #entry.text) - 4)))
+		if not shown[entry.item] then
+			print(string.format("| %s%s%s [%s] x%d %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, entry.quantity, string.rep(" ", (bigString - #entry.text) - 4 - #tostring(entry.quantity) - 2 )))
+			shown[entry.item] = true
+		end
 	end
 
-	io.write(string.format("%s\n", string.rep("=", bigString)))
+	print(string.format("%s\n", string.rep("=", bigString)))
 end
 
 -- drain current animal hunger.
