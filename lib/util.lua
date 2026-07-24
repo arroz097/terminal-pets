@@ -59,4 +59,21 @@ function util.endsWith(text, suffix)
 	return string.sub(text, -#suffix) == suffix
 end
 
+---@param str string
+function util.visualLenght(str)
+	return #str:gsub("\027%[[%d;]*m", "")
+end
+
+---@param dict table
+---@return number lenght
+function util.getDictionaryLenght(dict)
+	local total = 0
+
+	for _ in pairs(dict) do
+		total = total + 1
+	end
+
+	return total
+end
+
 return util
