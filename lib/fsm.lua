@@ -35,7 +35,6 @@ end
 
 function connection:Disconnect()
 	self._self.callbacks[self._hook][self._state] = nil
-	--print("removed " .. self._state .. " connection")
 	self._self = nil
 	self._state = nil
 	self._hook = nil
@@ -69,22 +68,20 @@ function fsm:onExit(state, fn)
 end
 
 ---@param action string
+---@return boolean sucess
 function fsm:dispatch(action)
 	local available = self.transitions[self.state]
 	if not available then return false end
+
 	local next = available[action]
 
 	if self.callbacks.exit[self.state] then
 		self.callbacks.exit[self.state]()
 	end
 
-	if not next then
-		--print("invalid action: " .. self.state .. " -> " .. action)
-		return false
-	end
+	if not next then return false end
 
 	self.state = next
-	--print("state: " .. self.state)
 
 	if self.callbacks.enter[next] then
 		self.callbacks.enter[next]()
