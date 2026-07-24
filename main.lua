@@ -68,7 +68,7 @@ repeat
 
 	if methodName == "exit" then
 		--
-	elseif pet[methodName] and not properties[methodName] and not pet.blacklist[methodName] then
+	elseif pet[methodName] and not properties[methodName] and not pet.private[methodName] then
 		pet[methodName](pet, arg)
 	else
 		io.write(string.format("\n%s\"%s\"%s is not a valid method of %s %s\n", ansi.text.italic, action, ansi.text.reset, animalType, name))
