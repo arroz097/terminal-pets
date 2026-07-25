@@ -79,8 +79,24 @@ end
 
 ---@param str string
 ---@param ... any
+-- print + string.format
 function util.printf(str, ...)
 	print(string.format(str, ...))
+end
+
+---@param str string
+---@param ... any
+-- abstracted io.write + string.format + io.flush
+function util.writef(str, ...)
+	io.write(string.format(str, ...))
+	io.flush()
+end
+
+---@param str string
+-- basic io.write 
+function util.write(str)
+	io.write(str)
+	io.flush()
 end
 
 return util
