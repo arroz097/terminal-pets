@@ -5,6 +5,8 @@ local signal = require("lib.signal")
 local messages = require("lib.messages")
 
 local printf = util.printf
+local writef = util.writef
+local write = util.write
 
 ---@class animal
 ---@field name string
@@ -130,11 +132,54 @@ function animal:hasHunger()
 	return true
 end
 
+---@param flag string
+function animal:getMethods(flag)
+	local blacklist = {new = true, __index = true}
+	local mt = getmetatable(self)
+
+	if flag == "" then
+		print()
+		for func, fn in pairs(mt) do
+			if not blacklist[func] then
+				local info = debug.getinfo(fn)
+
+				if info.nparams > 1 then
+					printf("%s%s [%s]%s", ansi.color.white, func, "parameter", ansi.text.reset)
+				else
+					printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
+				end
+			end
+		end
+		print()
+
+	elseif flag == "all" then
+		print()
+		for func, fn in pairs(animal) do
+			if not self.private[func] and not blacklist[func] then
+				local info = debug.getinfo(fn)
+
+				if info.nparams > 1 then
+					printf("%s%s [%s]%s", ansi.color.white, func, "parameter", ansi.text.reset)
+				else
+					printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
+
+				end
+			end
+		end
+		print()
+
+	else
+		printf("%s is no valid flag", flag)
+	end
+
+end
+
 ---@return table<string, boolean> properties
 -- returns a copy of properties as a set (name: true)
 function animal:getProperties()
 	local property = {}
 
+	print()
 	for key, value in pairs(self) do
 		if type(value) ~= "function" then
 			property[key] = true
@@ -260,20 +305,19 @@ function animal:move(location)
 	local to = self.region:dispatch(location)
 
 	if not to then
-		print("can't go to " .. location)
+		printf("can't go to %s through %s", location, self.region.state)
 		return
 	end
 
 	util.lockInput()
 
+	write(ansi.cursor.hide)
 	for i = 1, 3 do
-		io.write(ansi.cursor.hide, string.format("moving to %s%s\r", location, string.rep(".", i)))
+		writef("moving to %s%s\r", location, string.rep(".", i))
 		io.flush()
 		util.sleep(1)
 	end
-
-	io.write(ansi.cursor.show)
-	io.flush()
+	write(ansi.cursor.show)
 	printf("%s is now on %s", self.name, self.region.state)
 
 	util.unlockInput()
@@ -387,7 +431,7 @@ function animal:getStats()
 
 	bigString = math.max(bigString, 15) + 4
 
-	io.write(string.format("\n%s\n", string.rep("=", bigString)))
+	writef("\n%s\n", string.rep("=", bigString))
 	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4))
 	printf("%s", string.rep("=", bigString))
 
@@ -422,7 +466,7 @@ function animal:getLogs(page)
 
 	local totalPages = util.getDictionaryLenght(self.logs)
 
-	io.write(string.format("\npage (%d/%d)", page, totalPages))
+	writef("\npage (%d/%d)", page, totalPages)
 
 	local title = self.name .. " log history"
 	local bigString = #title
@@ -435,7 +479,7 @@ function animal:getLogs(page)
 
 	bigString = math.max(bigString, 30) + 4
 
-	io.write(string.format("\n%s\n", string.rep("=", bigString)))
+	writef("\n%s\n", string.rep("=", bigString))
 	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4))
 	printf("%s", string.rep("=", bigString))
 
@@ -473,7 +517,7 @@ function animal:showInventory()
 
 	bigString = math.max(bigString, 30) + 4
 
-	io.write(string.format("\n%s\n", string.rep("=", bigString)))
+	writef("\n%s\n", string.rep("=", bigString))
 	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 ))
 	printf("%s", string.rep("=", bigString))
 
