@@ -4,6 +4,8 @@ local fsm = require("lib.fsm")
 local signal = require("lib.signal")
 local messages = require("lib.messages")
 
+local printf = util.printf
+
 ---@class animal
 ---@field name string
 ---@field health integer
@@ -39,6 +41,7 @@ function animal.new(name)
 		__index = true,
 		new = true,
 		addItem = true,
+		addLog = true,
 		startRegion = true,
 		hasEnergy = true,
 		hasHunger = true,
@@ -100,7 +103,10 @@ function animal.new(name)
 		if #chosenMessage == 0 then return end
 		if shouldAct ~= 1 then return end
 
-		print(string.format("%s %s%s%s", self.name, ansi.text.italic, chosenMessage[math.random(#chosenMessage)], ansi.text.reset))
+		printf("%s %s%s%s", self.name, ansi.text.italic, chosenMessage[math.random(#chosenMessage)], ansi.text.reset)
+
+		self.logs[page][count] = string.format("[%s]: said something..", os.date("%H:%M:%S"))
+
 	end)
 
 	return self
@@ -108,7 +114,7 @@ end
 
 function animal:hasEnergy()
 	if self.energy <= 0 then
-		print(string.format("no enough %senergy%s!", ansi.color.cyan, ansi.text.reset))
+		printf("no enough %senergy%s!", ansi.color.cyan, ansi.text.reset)
 		return false
 	end
 
@@ -117,7 +123,7 @@ end
 
 function animal:hasHunger()
 	if self.hunger <= 0 then
-		print(string.format("no enough %shunger%s!", ansi.color.yellow, ansi.text.reset))
+		printf("no enough %shunger%s!", ansi.color.yellow, ansi.text.reset)
 		return false
 	end
 
@@ -142,7 +148,7 @@ end
 function animal:showProperties()
 	for key, value in pairs(self) do
 		if type(value) ~= "function" then
-			print(string.format("%s%s: (%s%s)", ansi.color.white, tostring(key), tostring(type(value)), ansi.text.reset))
+			printf("%s%s: (%s%s)", ansi.color.white, tostring(key), tostring(type(value)), ansi.text.reset)
 		end
 	end
 	print()
@@ -161,9 +167,9 @@ function animal:showMap()
 		places[self.region.state] = string.format("%s%s%s%s", ansi.text.underline, ansi.text.bold, self.region.state, ansi.text.reset)
 	end
 
-	print(string.format("\n%s ← %s → %s", places.mountains, places.forest, places.cave))
+	printf("\n%s ← %s → %s", places.mountains, places.forest, places.cave)
 	print("               ↓")
-	print(string.format("              %s\n", places.lake))
+	printf("              %s\n", places.lake)
 end
 
 ---@param initial string
@@ -194,17 +200,21 @@ end
 ---@param name string?
 function animal:eat(name)
 	if self.hunger >= 10 then
-		print(string.format("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset))
+		printf("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset)
+		self:addLog("tried to eat already full")
 		return
 	end
 
-	if not self:hasEnergy() then return end
+	if not self:hasEnergy() then
+		self:addLog("tried to eat while exhaust")
+		return
+	end
 
 	self.energy = math.max(0, self.energy - 1)
 	self.hunger = math.min(10, self.hunger + 1)
-	print(string.format("%s ate food! (%s+1 hunger%s)", self.name, ansi.color.yellow, ansi.text.reset))
+	printf("%s ate food! (%s+1 hunger%s)", self.name, ansi.color.yellow, ansi.text.reset)
 
-	self.changed:Fire(string.format("[%s]: ate food", os.date("%H:%M:%S")))
+	self:addLog("ate food")
 end
 
 -- tbd
@@ -216,14 +226,15 @@ end
 -- +1 energy
 function animal:sleep()
 	if self.energy >= 10 then
-		print(string.format("%s is already on max %senergy%s!", self.name, ansi.color.cyan, ansi.text.reset))
+		printf("%s is already on max %senergy%s!", self.name, ansi.color.cyan, ansi.text.reset)
+		self:addLog("tried to sleep while rested")
 		return
 	end
 
 	self.energy = math.min(10, self.energy + 1)
-	print(string.format("%s slept a little! (%s+1 energy%s)", self.name, ansi.color.cyan, ansi.text.reset))
+	printf("%s slept a little! (%s+1 energy%s)", self.name, ansi.color.cyan, ansi.text.reset)
 
-	self.changed:Fire(string.format("[%s]: did some sleep", os.date("%H:%M:%S")))
+	self:addLog("did some sleep")
 end
 
 ---@param location string
@@ -260,19 +271,19 @@ function animal:move(location)
 
 	io.write(ansi.cursor.show)
 	io.flush()
-	print(string.format("%s is now on %s", self.name, self.region.state))
+	printf("%s is now on %s", self.name, self.region.state)
 
 	util.unlockInput()
 
 	self.energy = math.max(0, self.energy - 1)
 
-	self.changed:Fire(string.format("[%s]: moved to %s", os.date("%H:%M:%S"), location))
+	self:addLog("moved to %s", location)
 end
 
----@param tb table
-function animal:addItem(tb)
+---@param tbl table
+function animal:addItem(tbl)
 	for _, entry in ipairs(self.inventory) do
-		if entry.item == tb.item then
+		if entry.item == tbl.item then
 			if entry.quantity >= 5 then
 				print("already max stack on " .. tostring(entry.item))
 				return false
@@ -289,8 +300,8 @@ function animal:addItem(tb)
 		return false
 	end
 
-	tb.quantity = 1
-	table.insert(self.inventory, tb)
+	tbl.quantity = 1
+	table.insert(self.inventory, tbl)
 	return true
 end
 
@@ -301,7 +312,7 @@ function animal:discard(name)
 		return
 	end
 	if #self.inventory <= 0 and name then
-		print(string.format("\"%s\" is not in the inventory!", name))
+		printf("\"%s\" is not in the inventory!", name)
 		return
 	end
 
@@ -315,15 +326,17 @@ function animal:discard(name)
 				table.remove(self.inventory, index)
 			end
 
-			print(string.format("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset))
-			self.changed:Fire(string.format("[%s]: discarded \"%s\" from inventory", os.date("%H:%M:%S"), name))
+			printf("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset)
+			self:addLog("discarded %s from inventory", name)
+
 			found = true
 			break
 		end
 	end
 
 	if not found then
-		print(string.format("\"%s\" is not in the inventory!", name))
+		printf("\"%s\" is not in the inventory!", name)
+		self:addLog("tried to discard inexistent item")
 	end
 end
 
@@ -335,6 +348,14 @@ function animal:getTotalItems()
 	end
 
 	return total
+end
+
+---@param action string
+---@param ... any
+function animal:addLog(action, ...)
+	if type(action) ~= "string" or not action then return end
+	local formatted = string.format(action, ...)
+	self.changed:Fire(string.format("[%s]: %s", os.date("%H:%M:%S"), formatted))
 end
 
 -- return current animal stats.
@@ -365,22 +386,22 @@ function animal:getStats()
 	bigString = math.max(bigString, 15) + 4
 
 	io.write(string.format("\n%s\n", string.rep("=", bigString)))
-	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4)))
-	print(string.format("%s", string.rep("=", bigString)))
+	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4))
+	printf("%s", string.rep("=", bigString))
 
 	for _, line in ipairs(lines) do
 		local color = line.color or "" -- "" representa string vazia nula sem caracteres
-		print(string.format("| %s%s%s%s %s|", line.name, color, line.value, ansi.text.reset, string.rep(" ", (bigString - #line.text) - 4)))
+		printf("| %s%s%s%s %s|", line.name, color, line.value, ansi.text.reset, string.rep(" ", (bigString - #line.text) - 4))
 	end
 
-	print(string.format("%s\n", string.rep("=", bigString)))
+	printf("%s\n", string.rep("=", bigString))
 end
 
 -- displays animal actions history
 ---@param page number?
 function animal:getLogs(page)
 	if #self.logs <= 0 then
-		print(string.format("%s has no logs history", self.name))
+		printf("%s has no logs history", self.name)
 		return
 	end
 	if page == "" then
@@ -393,7 +414,7 @@ function animal:getLogs(page)
 		return
 	end
 	if not self.logs[page] then
-		print(string.format("page %d does not exist", page))
+		printf("page %d does not exist", page)
 		return
 	end
 
@@ -413,20 +434,20 @@ function animal:getLogs(page)
 	bigString = math.max(bigString, 30) + 4
 
 	io.write(string.format("\n%s\n", string.rep("=", bigString)))
-	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4)))
-	print(string.format("%s", string.rep("=", bigString)))
+	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4))
+	printf("%s", string.rep("=", bigString))
 
 	for _, log in ipairs(self.logs[page]) do
-		print(string.format("| %s %s|", log, string.rep(" ", (bigString - #log) - 4)))
+		printf("| %s %s|", log, string.rep(" ", (bigString - #log) - 4))
 	end
 
-	print(string.format("%s\n", string.rep("=", bigString)))
+	printf("%s\n", string.rep("=", bigString))
 end
 
 -- displays animal stored items
 function animal:showInventory()
 	if #self.inventory <= 0 then
-		print(string.format("%s has no item to show up!", self.name))
+		printf("%s has no item to show up!", self.name)
 		return
 	end
 
@@ -451,17 +472,17 @@ function animal:showInventory()
 	bigString = math.max(bigString, 30) + 4
 
 	io.write(string.format("\n%s\n", string.rep("=", bigString)))
-	print(string.format("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 )))
-	print(string.format("%s", string.rep("=", bigString)))
+	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 ))
+	printf("%s", string.rep("=", bigString))
 
 	for _, entry in ipairs(entries) do
 		if not shown[entry.item] then
-			print(string.format("| %s%s%s [%s] x%d %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, entry.quantity, string.rep(" ", (bigString - #entry.text) - 4 - #tostring(entry.quantity) - 2 )))
+			printf("| %s%s%s [%s] x%d %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, entry.quantity, string.rep(" ", (bigString - #entry.text) - 4 - #tostring(entry.quantity) - 2 ))
 			shown[entry.item] = true
 		end
 	end
 
-	print(string.format("%s\n", string.rep("=", bigString)))
+	printf("%s\n", string.rep("=", bigString))
 end
 
 -- drain current animal hunger.
@@ -470,9 +491,10 @@ function animal:drainHunger()
 	while self.hunger > 0 do
 		util.sleep(1)
 		self.hunger = math.max(0, self.hunger - 1)
-		print(string.format("%s %shunger%s now is %d", self.name, ansi.color.yellow, ansi.text.reset, self.hunger))
+		printf("%s %shunger%s is now %d", self.name, ansi.color.yellow, ansi.text.reset, self.hunger)
 	end
-	self.changed:Fire(string.format("[%s]: drained hunger", os.date("%H:%M:%S")))
+
+	self:addLog("fully drained hunger")
 	util.unlockInput()
 end
 
