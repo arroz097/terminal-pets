@@ -15,7 +15,7 @@ local printf = util.printf
 ---@field logs table
 ---@field inventory table
 ---@field private table
----@field changed signal
+---@field Changed signal
 ---@field region fsm
 ---@field maxItems number
 local animal = {}
@@ -48,7 +48,7 @@ function animal.new(name)
 		getTotalItems = true,
 	}
 
-	self.changed = signal.new()
+	self.Changed = signal.new()
 
 	local lastEnergy = self.energy
 	local lastHunger = self.hunger
@@ -56,7 +56,7 @@ function animal.new(name)
 	local page = 1
 	local count = 0
 
-	self.changed:Connect(function(action)
+	self.Changed:Connect(function(action)
 		if count >= 10 then -- limit per page
 			page = page + 1
 			count = 0
@@ -252,7 +252,10 @@ function animal:move(location)
 		return
 	end
 
-	if not self:hasEnergy() then return end
+	if not self:hasEnergy() then
+		self:addLog("tried to move but had no energy")
+		return
+	end
 
 	local to = self.region:dispatch(location)
 
@@ -327,7 +330,6 @@ function animal:discard(name)
 			end
 
 			printf("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset)
-			self:addLog("discarded %s from inventory", name)
 
 			found = true
 			break
@@ -355,7 +357,7 @@ end
 function animal:addLog(action, ...)
 	if type(action) ~= "string" or not action then return end
 	local formatted = string.format(action, ...)
-	self.changed:Fire(string.format("[%s]: %s", os.date("%H:%M:%S"), formatted))
+	self.Changed:Fire(string.format("[%s]: %s", os.date("%H:%M:%S"), formatted))
 end
 
 -- return current animal stats.
@@ -488,6 +490,7 @@ end
 -- drain current animal hunger.
 function animal:drainHunger()
 	util.lockInput()
+
 	while self.hunger > 0 do
 		util.sleep(1)
 		self.hunger = math.max(0, self.hunger - 1)
@@ -495,6 +498,7 @@ function animal:drainHunger()
 	end
 
 	self:addLog("fully drained hunger")
+
 	util.unlockInput()
 end
 

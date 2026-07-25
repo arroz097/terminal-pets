@@ -3,6 +3,8 @@ local items = require("lib.items")
 local util = require("lib.util")
 local ansi = require("lib.ansi")
 
+local printf = util.printf
+
 ---@class dog : animal
 local dog = setmetatable({}, {__index = animal})
 dog.__index = dog
@@ -15,8 +17,8 @@ function dog.new(name)
 
 	self.type = "dog"
 
-	print(string.format("\ncreated %s %s%s%s!", self.type, ansi.color.white, self.name, ansi.text.reset))
-	self.changed:Fire(string.format("[%s]: spawned", os.date("%H:%M:%S")))
+	printf("\ncreated %s %s%s%s!", self.type, ansi.color.white, self.name, ansi.text.reset)
+	self:addLog("spawned")
 
 	return self
 end
@@ -51,15 +53,15 @@ end
 -- classic bark.
 -- -1 energy
 function dog:bark()
-	if self.energy <= 0 then
-		print(string.format("%s has no %senergy%s to bark!", self.name, ansi.color.cyan, ansi.text.reset))
+	if not self:hasEnergy() then
+		self:addLog("tried to bark")
 		return
 	end
 
 	self.energy = math.max(0, self.energy - 1)
-	print(string.format("%s has barked!", self.name))
+	printf("%s has barked!", self.name)
 
-	self.changed:Fire(string.format("[%s]: did a bark", os.date("%H:%M:%S")))
+	self:addLog("did a bark")
 end
 
 ---@param item string
@@ -67,19 +69,20 @@ end
 -- -2 energy
 -- -1 hunger
 function dog:fetch(item)
-	if self.energy <= 0 then
-		print(string.format("%s has no %senergy%s to fetch \"%s\"!", self.name, ansi.color.cyan, item, ansi.text.reset))
-		return
-	end
 	if item == "" then
-		print(string.format("nothing valid to %s fetch", self.name))
+		print("nothing valid to %s fetch", self.name)
 		return
 	end
+
+	if not self:hasEnergy() then
+		self:addLog("tried to fetch")
+	end
+
 	self.energy = math.max(0, self.energy - 2)
 	self.hunger = math.max(0, self.hunger - 1)
-	print(string.format("%s fetched the %s%s%s!", self.name, ansi.text.italic, item, ansi.text.reset))
+	printf("%s fetched the %s%s%s!", self.name, ansi.text.italic, item, ansi.text.reset)
 
-	self.changed:Fire(string.format("[%s]: fetched %s", os.date("%H:%M:%S"), item))
+	self:addLog("fetched %s", item)
 end
 
 -- a dog attempt to find something.
@@ -87,11 +90,11 @@ end
 -- -1 hunger
 function dog:dig()
 
-	local state = self.energy <= 0 and "energy" or self.hunger <= 0 and "hunger" or nil
+	local state = self.energy < 3 and "energy" or self.hunger <= 0 and "hunger" or nil
 	local stateColor = state == "energy" and ansi.color.cyan or state == "hunger" and ansi.color.yellow
 	if state then
-		print(string.format("%s has no %s%s%s to dig!", self.name, stateColor, state, ansi.text.reset))
-		self.changed:Fire(string.format("[%s]: tried to dig while lacking %s", os.date("%H:%M:%S"), state))
+		printf("%s has no %s%s%s to dig!", self.name, stateColor, state, ansi.text.reset)
+		self:addLog("tried to dig while lacking %s", state)
 		return
 	end
 
@@ -127,17 +130,17 @@ function dog:dig()
 			local add = self:addItem({item = item, rarity = rarity, color = color})
 
 			if add then
-				print(string.format("stored %s", item))
-				self.changed:Fire(string.format("[%s]: found %s", os.date("%H:%M:%S"), item))
+				printf("stored %s", item)
+				self:addLog("found %s", item)
 			else
-				self.changed:Fire(string.format("[%s]: attempted to store item with full inventory", os.date("%H:%M:%S")))
+				self:addLog("attempted to store item with full inventory")
 			end
 		elseif string.lower(input) == "n" then
-			print(string.format("discarded item \"%s\"", item))
-			self.changed:Fire(string.format("[%s]: discarded %s", os.date("%H:%M:%S"), item))
+			printf("discarded item \"%s\"", item)
+			self:addLog("discarded %s", item)
 		end
 	else
-		self.changed:Fire(string.format("[%s]: got lucky and found nothing", os.date("%H:%M:%S")))
+		self:addLog("got lucky and found nothing")
 	end
 
 	util.unlockInput()
@@ -145,8 +148,8 @@ end
 
 function dog:howl()
 	if self.energy > 4 and self.hunger > 4 then
-		print(string.format("%s has no need to howl!", self.name))
-		self.changed:Fire(string.format("[%s]: tried howl", os.date("%H:%M:%S")))
+		printf("%s has no need to howl!", self.name)
+		self:addLog("tried to howl")
 		return
 	end
 
@@ -161,7 +164,7 @@ function dog:howl()
 
 	io.write("\n".. ansi.cursor.show)
 
-	self.changed:Fire(string.format("[%s]: did a howl", os.date("%H:%M:%S")))
+	self:addLog("did a howl")
 
 	util.unlockInput()
 end
