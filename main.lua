@@ -1,9 +1,11 @@
 math.randomseed(os.time())
 
---local socket = require("socket")
 local registry = require("lib.registry")
 local ansi = require("lib.ansi")
 local util = require("lib.util")
+
+local printf = util.printf
+local writef = util.writef
 
 local animals = {
 	cat = require("animals.cat"),
@@ -26,20 +28,19 @@ ansi:enterScreen()
 print("animal types...: cat, dog, fox\n")
 print("animal commands: eat, sleep, stats, map, logs [page number], inventory, move [region name], discard [item name], drainHunger\n")
 print("debug commands.: properties\n")
-print(string.format("%smethods%s to list current animal possible actions. \n", ansi.text.italic, ansi.text.reset))
+printf("%smethods%s to list current animal type methods.", ansi.text.italic, ansi.text.reset)
+printf("%smethods all%s to list all animal methods.\n", ansi.text.italic, ansi.text.reset)
 
 local animalType
 repeat
-	io.write(ansi.text.bold, "animal type: ", ansi.text.reset)
-	io.flush()
+	writef("%sanimal type: %s", ansi.text.bold, ansi.text.reset)
 	animalType = io.read()
 
 until animals[animalType]
 
 local name
 repeat
-	io.write(ansi.text.bold, "animal name: ", ansi.text.reset)
-	io.flush()
+	writef("%sanimal name: %s", ansi.text.bold, ansi.text.reset)
 	name = io.read()
 
 until name ~= ""
@@ -47,7 +48,7 @@ until name ~= ""
 --io.write(ansi:moveTo(2, 1), ansi.clearDown)
 local pet = animals[animalType].new(name)
 
-print(string.format("\n%sexit%s to leave.\n", ansi.text.italic, ansi.text.reset))
+writef("\n%sexit%s to leave.\n", ansi.text.italic, ansi.text.reset)
 
 local properties = pet:getProperties()
 
@@ -55,9 +56,8 @@ registry.add(pet.name, pet)
 
 local command
 repeat
-	io.write(string.format("%s action: ", name))
-	io.flush()
-	command = string.lower(io.read())
+	writef("%s action: ", name)
+	command = io.read()
 
 	local split = util.split(command)
 
@@ -71,14 +71,13 @@ repeat
 	elseif pet[methodName] and not properties[methodName] and not pet.private[methodName] then
 		pet[methodName](pet, arg)
 	else
-		io.write(string.format("\n%s\"%s\"%s is not a valid method of %s %s\n", ansi.text.italic, action, ansi.text.reset, animalType, name))
+		writef("\n%s\"%s\"%s is not a valid method of %s %s\n", ansi.text.italic, action, ansi.text.reset, animalType, name)
 		io.flush()
 	end
 
 until command == "exit"
 
-io.write(string.format("\nleaving %s...", name))
-io.flush()
+writef("\nleaving %s...", name)
 util.sleep(1)
 
 ansi:exitScreen()
