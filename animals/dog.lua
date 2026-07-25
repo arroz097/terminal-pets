@@ -4,6 +4,7 @@ local util = require("lib.util")
 local ansi = require("lib.ansi")
 
 local printf = util.printf
+local writef = util.writef
 
 ---@class dog : animal
 local dog = setmetatable({}, {__index = animal})
@@ -21,20 +22,6 @@ function dog.new(name)
 	self:addLog("spawned")
 
 	return self
-end
-
-function dog:getMethods()
-	local blacklist = {new = true, getMethods = true, __index = true}
-	for func in pairs(dog) do
-		if not blacklist[func] then
-			if func == "fetch" then
-				print(string.format("%s%s %s%s", ansi.color.white, func, "[item name]", ansi.text.reset))
-			else
-				print(string.format("%s%s%s", ansi.color.white, func, ansi.text.reset))
-			end
-		end
-	end
-	print()
 end
 
 ---@return string rarity
@@ -107,22 +94,21 @@ function dog:dig()
 	self.energy = math.max(0, self.energy - 3)
 	self.hunger = math.max(0, self.hunger - 1)
 
-	io.write(string.format("%s started digging!\n%s", self.name, ansi.cursor.hide))
+	writef("%s started digging!\n%s", self.name, ansi.cursor.hide)
 
 	for i = 1, 4 do
 		util.sleep(1)
-		io.write(string.format("digging%s\r", string.rep(".", i)))
-		io.flush()
+		writef("digging%s\r", string.rep(".", i))
 	end
 
-	io.write(string.format("found %s%s%s!%s\n", color, item, ansi.text.reset, ansi.cursor.show))
+	writef("found %s%s%s!%s\n", color, item, ansi.text.reset, ansi.cursor.show)
 
 	if item ~= "nothing" then
 		util.unlockInput()
 
 		local input
 		repeat
-			io.write(string.format("keep item \"%s\"? (Y/N)\n", item))
+			writef("keep item \"%s\"? (Y/N)\n", item)
 			input = io.read()
 		until string.lower(input) == "y" or string.lower(input) == "n"
 
@@ -158,11 +144,10 @@ function dog:howl()
 	io.write(ansi.cursor.hide)
 	for i = 1, 50 do
 		util.sleep(0.1)
-		io.write(string.format("%s howls a%s\r", self.name, string.rep("u", i)))
-		io.flush()
+		writef("%s howls a%s\r", self.name, string.rep("u", i))
 	end
 
-	io.write("\n".. ansi.cursor.show)
+	writef("\n".. ansi.cursor.show)
 
 	self:addLog("did a howl")
 

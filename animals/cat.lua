@@ -25,16 +25,6 @@ function cat.new(name)
 	return self
 end
 
-function cat:getMethods()
-	local blacklist = {new = true, getMethods = true, __index = true}
-	for func in pairs(cat) do
-		if not blacklist[func] then
-			printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
-		end
-	end
-	print()
-end
-
 -- does a classic meow.
 -- -1 energy
 -- -1 hunger

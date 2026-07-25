@@ -25,20 +25,6 @@ function fox.new(name)
 	return self
 end
 
-function fox:getMethods()
-	local blacklist = {new = true, getMethods = true, __index = true}
-	for func in pairs(fox) do
-		if not blacklist[func] then
-			if func == "steal" then
-				printf("%s%s %s%s", ansi.color.white, func, "[name]", ansi.text.reset)
-			else
-				printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
-			end
-		end
-	end
-	print()
-end
-
 ---@param name string
 function fox:steal(name)
 	local victim, err = registry.get(name)
