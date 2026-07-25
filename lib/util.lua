@@ -1,5 +1,6 @@
 local util = {}
 
+---@return boolean isWindows
 -- returns true if running on Windows
 function util.isWindows()
 	return package.config:sub(1,1) == "\\"
@@ -74,6 +75,12 @@ function util.getDictionaryLenght(dict)
 	end
 
 	return total
+end
+
+---@param str string
+---@param ... any
+function util.printf(str, ...)
+	print(string.format(str, ...))
 end
 
 return util
