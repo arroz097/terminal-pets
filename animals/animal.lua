@@ -2,7 +2,7 @@ local ansi = require("lib.ansi")
 local util = require("lib.util")
 local fsm = require("lib.fsm")
 local signal = require("lib.signal")
-local messages = require("lib.messages")
+local messages = require("data.messages")
 
 local printf = util.printf
 local writef = util.writef

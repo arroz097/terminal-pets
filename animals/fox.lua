@@ -1,6 +1,6 @@
 local animal = require("animals.animal")
 local registry = require("lib.registry")
-local items = require("lib.items")
+local items = require("data.items")
 local util = require("lib.util")
 local ansi = require("lib.ansi")
 
