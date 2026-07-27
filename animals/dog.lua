@@ -1,7 +1,7 @@
 local animal = require("animals.animal")
-local items = require("data.items")
 local util = require("lib.util")
 local ansi = require("lib.ansi")
+local loot = require("lib.loot")
 
 local printf = util.printf
 local writef = util.writef
@@ -22,19 +22,6 @@ function dog.new(name)
 	self:addLog("spawned")
 
 	return self
-end
-
----@return string rarity
----@return string color
-local function getRarity()
-	local roll = math.random(100)
-	if roll <= 70 then
-		return "common", ansi.color.white
-	elseif roll <= 95 then
-		return "rare", ansi.color.brightBlue
-	else
-		return "legendary", ansi.color.brightYellow
-	end
 end
 
 -- classic bark.
@@ -85,11 +72,12 @@ function dog:dig()
 		return
 	end
 
-	util.lockInput()
+	local item = loot.roll(self.region.state, "dig")
 
-	local rarity, color = getRarity()
-	local pool = items[rarity]
-	local item = pool[math.random(#pool)]
+
+	if not item then return end
+
+	util.lockInput()
 
 	self.energy = math.max(0, self.energy - 3)
 	self.hunger = math.max(0, self.hunger - 1)
@@ -101,28 +89,28 @@ function dog:dig()
 		writef("digging%s\r", string.rep(".", i))
 	end
 
-	writef("found %s%s%s!%s\n", color, item, ansi.text.reset, ansi.cursor.show)
+	writef("found %s%s%s!%s\n", item.color, item.name, ansi.text.reset, ansi.cursor.show)
 
 	if item ~= "nothing" then
 		util.unlockInput()
 
 		local input
 		repeat
-			writef("keep item \"%s\"? (Y/N)\n", item)
+			writef("keep item \"%s\"? (Y/N)\n", item.name)
 			input = io.read()
 		until string.lower(input) == "y" or string.lower(input) == "n"
 
 		if string.lower(input) == "y" then
-			local add = self:addItem({item = item, rarity = rarity, color = color})
+			local add = self:addItem({item = item.name, rarity = item.rarity, color = item.color})
 
 			if add then
-				printf("stored %s", item)
-				self:addLog("found %s", item)
+				printf("stored %s", item.name)
+				self:addLog("found %s", item.name)
 			else
 				self:addLog("attempted to store item with full inventory")
 			end
 		elseif string.lower(input) == "n" then
-			printf("discarded item \"%s\"", item)
+			printf("discarded item \"%s\"", item.name)
 			self:addLog("discarded %s", item)
 		end
 	else
