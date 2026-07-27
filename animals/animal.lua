@@ -107,6 +107,16 @@ function animal.new(name)
 
 		printf("%s %s%s%s", self.name, ansi.text.italic, chosenMessage[math.random(#chosenMessage)], ansi.text.reset)
 
+		count = count + 1
+		if count >= 10 then
+			page = page + 1
+			count = 0
+		end
+
+		if not self.logs[page] then
+			self.logs[page] = {}
+		end
+
 		self.logs[page][count] = string.format("[%s]: said something..", os.date("%H:%M:%S"))
 
 	end)
@@ -179,7 +189,6 @@ end
 function animal:getProperties()
 	local property = {}
 
-	print()
 	for key, value in pairs(self) do
 		if type(value) ~= "function" then
 			property[key] = true
@@ -191,6 +200,7 @@ end
 
 -- outputs current animal properties
 function animal:showProperties()
+	print()
 	for key, value in pairs(self) do
 		if type(value) ~= "function" then
 			printf("%s%s: (%s%s)", ansi.color.white, tostring(key), tostring(type(value)), ansi.text.reset)
@@ -318,6 +328,7 @@ function animal:move(location)
 		util.sleep(1)
 	end
 	write(ansi.cursor.show)
+
 	printf("%s is now on %s", self.name, self.region.state)
 
 	util.unlockInput()
@@ -386,14 +397,9 @@ function animal:discard(name)
 	end
 end
 
+-- temp
 function animal:getTotalItems()
-	local total = 0
-
-	for _, entry in ipairs(self.inventory) do
-		total = total + (entry.quantity or 1)
-	end
-
-	return total
+	return #self.inventory
 end
 
 ---@param action string
