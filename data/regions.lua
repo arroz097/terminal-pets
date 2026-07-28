@@ -13,19 +13,31 @@ regions.data = {
 			"rabbit foot",
 			"buried chest",
 		},
-		forage = {},
+		forage = {
+			"berry",
+			"mushroom",
+			"apple",
+			"wild_herb",
+			"bird_egg",
+			"acorn",
+		},
 	},
 	lake = {
 		dig = {
 			"smooth stone",
-			"algae",
 			"shell",
 			"pearl",
 			"old coin",
 			"golden fish scale",
 			"fishing rod"
 		},
-		forage = {},
+		forage = {
+			"algae",
+			"snail",
+			"water_plant",
+			"crawfish",
+		},
+		fishing = {},
 	},
 	mountains = {
 		dig = {
@@ -37,7 +49,13 @@ regions.data = {
 			"wolf fang",
 			"ancient relic",
 		},
-		forage = {},
+		forage = {
+			"beetle",
+			"mountain_herb",
+			"mountain_mushroom",
+			"snow_berry",
+			"hawk_egg",
+		},
 	},
 	cave = {
 		dig = {
@@ -50,7 +68,12 @@ regions.data = {
 			"gem",
 			"mysterious map",
 		},
-		forage = {},
+		forage = {
+			"cave_grub",
+			"cave_worm",
+			"cave_root",
+			"cave_egg",
+		},
 	},
 
 
@@ -65,60 +88,3 @@ function regions:getRegions()
 end
 
 return regions
-
---[[
-return {
-	forest = {
-		dig = {
-			"bone",
-			"stick",
-			"worm",
-			"dirt clump",
-			"acorn",
-			"ancient bone",
-			"mushroom",
-			"rabbit foot",
-			"buried chest",
-		},
-		forage = {},
-	},
-	lake = {
-		dig = {
-			"smooth stone",
-			"algae",
-			"shell",
-			"pearl",
-			"old coin",
-			"golden fish scale",
-			"fishing rod"
-		},
-		forage = {},
-	},
-	mountains = {
-		dig = {
-			"rock",
-			"dry bone",
-			"eagle feather",
-			"iron ore",
-			"strange coin",
-			"wolf fang",
-			"ancient relic",
-		},
-		forage = {},
-	},
-	cave = {
-		dig = {
-			"pebble",
-			"rock",
-			"coal",
-			"crystal shard",
-			"rusty key",
-			"old lantern",
-			"gem",
-			"mysterious map",
-		},
-		forage = {},
-	},
-
-}
-]]
