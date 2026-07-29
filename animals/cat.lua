@@ -7,6 +7,7 @@ local printf = util.printf
 ---@class cat : animal
 local cat = setmetatable({}, {__index = animal}) -- metatable de cat, index referencia animal quando não acha em cat
 cat.__index = cat -- index dentro de cat, usado pelas instancias self
+cat._type = "cat"
 
 ---@param name string
 ---@return cat
