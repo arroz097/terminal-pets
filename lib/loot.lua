@@ -30,12 +30,12 @@ function loot.roll(region, action)
 		color = ansi.color.brightYellow
 	end
 
-	local pool = items[rarity]
-
 	local candidates = {}
 
-	for _, value in ipairs(pool) do
-		if region_set[value] then
+	for key, value in pairs(items:getItems()) do
+		if region_set[key] and value.rarity == rarity  then
+			value.name = key
+			value.color = color
 			table.insert(candidates, value)
 		end
 	end
@@ -47,11 +47,7 @@ function loot.roll(region, action)
 
 	local item = candidates[math.random(#candidates)]
 
-	return {
-		name = item,
-		rarity = rarity,
-		color = color,
-	}
+	return item
 end
 
 return loot
