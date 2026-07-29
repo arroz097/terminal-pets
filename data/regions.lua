@@ -6,12 +6,12 @@ regions.data = {
 			"bone",
 			"stick",
 			"worm",
-			"dirt clump",
+			"dirt_clump",
 			"acorn",
-			"ancient bone",
 			"mushroom",
-			"rabbit foot",
-			"buried chest",
+			"ancient bone",
+			"rabbit_foot",
+			"buried_chest",
 		},
 		forage = {
 			"berry",
@@ -24,12 +24,12 @@ regions.data = {
 	},
 	lake = {
 		dig = {
-			"smooth stone",
+			"smooth_stone",
 			"shell",
 			"pearl",
-			"old coin",
-			"golden fish scale",
-			"fishing rod"
+			"old_coin",
+			"golden_fish scale",
+			"fishing_rod"
 		},
 		forage = {
 			"algae",
@@ -42,12 +42,12 @@ regions.data = {
 	mountains = {
 		dig = {
 			"rock",
-			"dry bone",
-			"eagle feather",
-			"iron ore",
-			"strange coin",
-			"wolf fang",
-			"ancient relic",
+			"dry_bone",
+			"eagle_feather",
+			"iron_ore",
+			"strange_coin",
+			"wolf_fang",
+			"ancient_relic",
 		},
 		forage = {
 			"beetle",
@@ -62,11 +62,11 @@ regions.data = {
 			"pebble",
 			"rock",
 			"coal",
-			"crystal shard",
+			"crystal_shard",
 			"rusty key",
-			"old lantern",
+			"old_lantern",
 			"gem",
-			"mysterious map",
+			"mysterious_map",
 		},
 		forage = {
 			"cave_grub",
