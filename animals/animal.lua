@@ -1,8 +1,11 @@
 local ansi = require("lib.ansi")
 local util = require("lib.util")
 local fsm = require("lib.fsm")
+local loot = require("lib.loot")
 local signal = require("lib.signal")
+
 local messages = require("data.messages")
+local items = require("data.items")
 
 local printf = util.printf
 local writef = util.writef
@@ -248,30 +251,64 @@ function animal:startRegion(initial)
 end
 
 -- eat some food.
--- +1 hunger
 ---@param name string?
 function animal:eat(name)
+	local itemData = items:getItems()[name]
+
 	if self.hunger >= 10 then
 		printf("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset)
 		self:addLog("tried to eat already full")
 		return
 	end
-
-	if not self:hasEnergy() then
-		self:addLog("tried to eat while exhaust")
+	if name == "" then
+		print("no food given")
 		return
 	end
 
-	self.energy = math.max(0, self.energy - 1)
-	self.hunger = math.min(10, self.hunger + 1)
-	printf("%s ate food! (%s+1 hunger%s)", self.name, ansi.color.yellow, ansi.text.reset)
+	local found = false
 
-	self:addLog("ate food")
+	for _, entry in ipairs(self.inventory) do
+		if itemData and itemData.name == entry.name and itemData.type == "food" then
+			self.hunger = math.min(10, self.hunger + itemData.hunger)
+			printf("ate %s (%s+%d hunger%s)", itemData.name, ansi.color.yellow, itemData.hunger, ansi.text.reset)
+			self:removeItem(entry.name)
+			found = true
+
+			self:addLog("ate %s", itemData.name)
+			break
+		elseif itemData and itemData.name == entry.name and itemData.type ~= "food" then
+			printf("%s is not a food", itemData.name)
+			return
+		end
+	end
+
+	if not found then
+		printf("%s is not in the inventory", name)
+	end
 end
 
--- tbd
+-- searchs for some food
 function animal:forage()
+	if not self:hasEnergy() then
+		self:addLog("tried to forage without energy")
+		return
+	end
 
+	local item = loot.roll(self.region.state, "forage")
+
+	if not item then return end
+
+	self.energy = math.max(0, self.energy - 1)
+
+	local add = self:addItem(item)
+
+	printf("found %s%s%s!%s\n", item.color, item.name, ansi.text.reset, ansi.cursor.show)
+
+	if add then
+		self:addLog("found %s", item.name)
+	else
+		self:addLog("tried to store item with full inventory")
+	end
 end
 
 -- basic recovery.
@@ -362,6 +399,27 @@ function animal:addItem(tbl)
 end
 
 ---@param name string
+function animal:removeItem(name)
+	local found = false
+
+	for index, entry in ipairs(self.inventory) do
+		if entry.name == name then
+			entry.quantity = (entry.quantity or 1) - 1
+
+			if entry.quantity <= 0 then
+				table.remove(self.inventory, index)
+			end
+
+
+			found = true
+			break
+		end
+	end
+
+	return found
+end
+
+---@param name string
 function animal:discard(name)
 	if name == "" then
 		print("no item given to discard")
@@ -372,24 +430,11 @@ function animal:discard(name)
 		return
 	end
 
-	local found = false
+	local remove = self:removeItem(name)
 
-	for index, entry in ipairs(self.inventory) do
-		if entry.item == name then
-			entry.quantity = (entry.quantity or 1) - 1
-
-			if entry.quantity <= 0 then
-				table.remove(self.inventory, index)
-			end
-
-			printf("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset)
-
-			found = true
-			break
-		end
-	end
-
-	if not found then
+	if remove then
+		printf("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset)
+	else
 		printf("\"%s\" is not in the inventory!", name)
 		self:addLog("tried to discard inexistent item")
 	end
@@ -450,7 +495,7 @@ function animal:getLogs(page)
 		return
 	end
 	if page == "" then
-		page = util.getDictionaryLenght(self.logs)
+		page = util.getDictionaryLength(self.logs)
 	else
 		page = tonumber(page)
 	end
@@ -463,7 +508,7 @@ function animal:getLogs(page)
 		return
 	end
 
-	local totalPages = util.getDictionaryLenght(self.logs)
+	local totalPages = util.getDictionaryLength(self.logs)
 
 	writef("\npage (%d/%d)", page, totalPages)
 
@@ -563,6 +608,11 @@ function animal:showInventory(...)
 	writef("\n%s\n", string.rep("=", bigString))
 	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 ))
 	printf("%s", string.rep("=", bigString))
+
+	if #entries == 0 then
+		local message = "nothing here.."
+		printf("| %s %s|", message, string.rep(" ", (bigString - #message) - 4 ))
+	end
 
 	for _, entry in ipairs(entries) do
 		if not shown[entry.item] then
