@@ -49,7 +49,7 @@ end
 ---@param text string
 ---@param prefix string
 -- checks if given string starts with chosen prefix
-function util.startstWith(text, prefix)
+function util.startsWith(text, prefix)
 	return string.sub(text, 1, #prefix) == prefix
 end
 
@@ -61,13 +61,13 @@ function util.endsWith(text, suffix)
 end
 
 ---@param str string
-function util.visualLenght(str)
+function util.visualLength(str)
 	return #str:gsub("\027%[[%d;]*m", "")
 end
 
 ---@param dict table
 ---@return number lenght
-function util.getDictionaryLenght(dict)
+function util.getDictionaryLength(dict)
 	local total = 0
 
 	for _ in pairs(dict) do
