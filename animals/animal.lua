@@ -22,6 +22,7 @@ local write = util.write
 ---@field maxItems number
 local animal = {}
 animal.__index = animal
+animal._type = "animal"
 
 ---@param name string
 ---@return animal
@@ -32,7 +33,7 @@ function animal.new(name)
 	self.health = 100
 	self.energy = 10
 	self.hunger = 10
-	self.maxItems = 5
+	self.maxItems = 10
 	self.type = "none"
 	self.logs = {}
 	self.inventory = {}
@@ -41,13 +42,13 @@ function animal.new(name)
 
 	self.private = {
 		__index = true,
+		_type = true,
 		new = true,
 		addItem = true,
 		addLog = true,
 		startRegion = true,
 		hasEnergy = true,
 		hasHunger = true,
-		getTotalItems = true,
 	}
 
 	self.Changed = signal.new()
@@ -144,44 +145,40 @@ end
 
 ---@param flag string
 function animal:getMethods(flag)
-	local blacklist = {new = true, __index = true}
 	local mt = getmetatable(self)
 
-	if flag == "" then
-		print()
-		for func, fn in pairs(mt) do
-			if not blacklist[func] then
-				local info = debug.getinfo(fn)
+	local flags = { ["-a"] = true, ["-all"] = true }
 
-				if info.nparams > 1 then
-					printf("%s%s [%s]%s", ansi.color.white, func, "parameter", ansi.text.reset)
-				else
-					printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
+	local function showMethods(...)
+		local args = {...}
+
+		print()
+		for i = 1, #args do
+			local tbl = args[i]
+			printf("%s[%s]%s:", ansi.text.bold, tbl._type, ansi.text.reset)
+			for func, fn in pairs(tbl) do
+				if not self.private[func] and type(fn) == "function" then
+
+					local info = debug.getinfo(fn)
+
+					if info.nparams > 1 then
+						printf("%s%s %s%s", ansi.color.white, func, "[parameter]", ansi.text.reset)
+					else
+						printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
+					end
 				end
 			end
+			print()
 		end
-		print()
-
-	elseif flag == "all" then
-		print()
-		for func, fn in pairs(animal) do
-			if not self.private[func] and not blacklist[func] then
-				local info = debug.getinfo(fn)
-
-				if info.nparams > 1 then
-					printf("%s%s [%s]%s", ansi.color.white, func, "parameter", ansi.text.reset)
-				else
-					printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
-
-				end
-			end
-		end
-		print()
-
-	else
-		printf("%s is no valid flag", flag)
 	end
 
+	if flags[flag] then
+		showMethods(mt, animal)
+	elseif flag == "" then
+		showMethods(mt)
+	else
+		printf("%s: flag not valid", flag)
+	end
 end
 
 ---@return table<string, boolean> properties
@@ -341,9 +338,9 @@ end
 ---@param tbl table
 function animal:addItem(tbl)
 	for _, entry in ipairs(self.inventory) do
-		if entry.item == tbl.item then
+		if entry.name == tbl.name then
 			if entry.quantity >= 5 then
-				print("already max stack on " .. tostring(entry.item))
+				print("already max stack on " .. tostring(entry.name))
 				return false
 			end
 
@@ -353,13 +350,14 @@ function animal:addItem(tbl)
 		end
 	end
 
-	if self:getTotalItems() >= self.maxItems then
+	if #self.inventory >= self.maxItems then
 		print("inventory is full!")
 		return false
 	end
 
 	tbl.quantity = 1
 	table.insert(self.inventory, tbl)
+
 	return true
 end
 
@@ -395,11 +393,6 @@ function animal:discard(name)
 		printf("\"%s\" is not in the inventory!", name)
 		self:addLog("tried to discard inexistent item")
 	end
-end
-
--- temp
-function animal:getTotalItems()
-	return #self.inventory
 end
 
 ---@param action string
@@ -497,17 +490,61 @@ function animal:getLogs(page)
 end
 
 -- displays animal stored items
-function animal:showInventory()
+function animal:showInventory(...)
 	if #self.inventory <= 0 then
 		printf("%s has no item to show up!", self.name)
 		return
 	end
 
+	local validFlags = {["-r"] = "rarity", ["-t"] = "type"}
+	local args = {...}
+	local filter = {}
+
+	for i, v in ipairs(args) do
+		if v:sub(1,1) == "-" then
+			local nextVal = args[i+1]
+			local flag = validFlags[v]
+
+			if not flag then
+				printf("%s: flag not valid", v)
+				return
+			end
+
+			if nextVal:sub(1,1) == "-" or nextVal == "" then
+				filter[flag] = "all"
+			else
+				filter[flag] = nextVal
+			end
+		end
+	end
+
 	local entries = {}
 
 	for _, entry in ipairs(self.inventory) do
-		local str = string.format("%s [%s]", entry.item, entry.rarity)
-		table.insert(entries, {text = str, item = entry.item, rarity = entry.rarity, color = entry.color, quantity = entry.quantity})
+		local str
+		local tags = ""
+
+		local passRarity = not filter.rarity or filter.rarity == "all" or entry.rarity == filter.rarity
+		local passType = not filter.type or filter.type == "all" or entry.type == filter.type
+
+		if filter.rarity then
+			tags = tags .. "[" .. entry.rarity .. "]"
+		end
+
+		if filter.type then
+			tags = tags .. "[" .. entry.type .. "]"
+		end
+
+		if passRarity and passType then
+			if tags ~= "" then
+				str = string.format("%s %s", entry.name, tags)
+			else
+				str = entry.name
+			end
+
+			table.insert(entries, {text = str, item = entry.name, rarity = entry.rarity, filter = tags, quantity = entry.quantity})
+		end
+
 	end
 
 	local title = self.name .. " inventory"
@@ -529,7 +566,7 @@ function animal:showInventory()
 
 	for _, entry in ipairs(entries) do
 		if not shown[entry.item] then
-			printf("| %s%s%s [%s] x%d %s|", entry.color, entry.item, ansi.text.reset, entry.rarity, entry.quantity, string.rep(" ", (bigString - #entry.text) - 4 - #tostring(entry.quantity) - 2 ))
+			printf("| %s%sx%d %s|", entry.item, entry.filter ~= "" and " " .. entry.filter .. " " or " ", entry.quantity, string.rep(" ", (bigString - #entry.text) - 4 - #tostring(entry.quantity) - 2 ))
 			shown[entry.item] = true
 		end
 	end
