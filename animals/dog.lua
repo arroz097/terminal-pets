@@ -9,6 +9,7 @@ local writef = util.writef
 ---@class dog : animal
 local dog = setmetatable({}, {__index = animal})
 dog.__index = dog
+dog._type = "dog"
 
 ---@param name string
 ---@return dog
@@ -74,7 +75,6 @@ function dog:dig()
 
 	local item = loot.roll(self.region.state, "dig")
 
-
 	if not item then return end
 
 	util.lockInput()
@@ -91,7 +91,7 @@ function dog:dig()
 
 	writef("found %s%s%s!%s\n", item.color, item.name, ansi.text.reset, ansi.cursor.show)
 
-	if item ~= "nothing" then
+	if item.name ~= "nothing" then
 		util.unlockInput()
 
 		local input
@@ -101,17 +101,16 @@ function dog:dig()
 		until string.lower(input) == "y" or string.lower(input) == "n"
 
 		if string.lower(input) == "y" then
-			local add = self:addItem({item = item.name, rarity = item.rarity, color = item.color})
-
+			local add = self:addItem(item)
 			if add then
 				printf("stored %s", item.name)
 				self:addLog("found %s", item.name)
 			else
-				self:addLog("attempted to store item with full inventory")
+				self:addLog("tried to store item with full inventory")
 			end
 		elseif string.lower(input) == "n" then
 			printf("discarded item \"%s\"", item.name)
-			self:addLog("discarded %s", item)
+			self:addLog("discarded %s", item.name)
 		end
 	else
 		self:addLog("got lucky and found nothing")
