@@ -29,7 +29,7 @@ print("animal types...: cat, dog, fox\n")
 print("animal commands: eat, sleep, stats, map, logs [page number], inventory, move [region name], discard [item name], drainHunger\n")
 print("debug commands.: properties\n")
 printf("%smethods%s to list current animal type methods.", ansi.text.italic, ansi.text.reset)
-printf("%smethods all%s to list all animal methods.\n", ansi.text.italic, ansi.text.reset)
+printf("%smethods -all or -a %s to list all animal methods.\n", ansi.text.italic, ansi.text.reset)
 
 local animalType
 repeat
@@ -62,14 +62,17 @@ repeat
 	local split = util.split(command)
 
 	local action = split[1] or ""
-	local arg = table.concat(split, " ", 2)
+	local arg1 = split[2] or "" --table.concat(split, " ", 2)
+	local arg2 = split[3] or ""
+	local arg3 = split[4] or ""
+	local arg4 = split[5] or ""
 
 	local methodName = aliases[action] or action
 
 	if methodName == "exit" then
 		-- 
 	elseif pet[methodName] and not properties[methodName] and not pet.private[methodName] then
-		pet[methodName](pet, arg)
+		pet[methodName](pet, arg1, arg2, arg3, arg4)
 	else
 		writef("\n%s\"%s\"%s is not a valid method of %s %s\n", ansi.text.italic, action, ansi.text.reset, animalType, name)
 	end
