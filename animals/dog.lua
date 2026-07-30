@@ -101,7 +101,7 @@ function dog:dig()
 		until string.lower(input) == "y" or string.lower(input) == "n"
 
 		if string.lower(input) == "y" then
-			local add = self:addItem(item)
+			local add = self.inventory:addItem(item)
 			if add then
 				printf("stored %s", item.name)
 				self:addLog("found %s", item.name)

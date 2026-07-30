@@ -4,6 +4,8 @@ local fsm = require("lib.fsm")
 local loot = require("lib.loot")
 local signal = require("lib.signal")
 
+local inventory = require("systems.inventory")
+
 local messages = require("data.messages")
 local items = require("data.items")
 
@@ -18,7 +20,7 @@ local write = util.write
 ---@field hunger integer
 ---@field type string
 ---@field logs table
----@field inventory table
+---@field inventory inventory
 ---@field private table
 ---@field Changed signal
 ---@field region fsm
@@ -36,10 +38,9 @@ function animal.new(name)
 	self.health = 100
 	self.energy = 10
 	self.hunger = 10
-	self.maxItems = 10
 	self.type = "none"
 	self.logs = {}
-	self.inventory = {}
+	self.inventory = inventory.new(self)
 
 	self.region = self:startRegion("forest")
 
@@ -47,7 +48,6 @@ function animal.new(name)
 		__index = true,
 		_type = true,
 		new = true,
-		addItem = true,
 		addLog = true,
 		startRegion = true,
 		hasEnergy = true,
@@ -267,11 +267,11 @@ function animal:eat(name)
 
 	local found = false
 
-	for _, entry in ipairs(self.inventory) do
+	for _, entry in ipairs(self.inventory.items) do
 		if itemData and itemData.name == entry.name and itemData.type == "food" then
 			self.hunger = math.min(10, self.hunger + itemData.hunger)
 			printf("ate %s (%s+%d hunger%s)", itemData.name, ansi.color.yellow, itemData.hunger, ansi.text.reset)
-			self:removeItem(entry.name)
+			self.inventory:removeItem(entry.name)
 			found = true
 
 			self:addLog("ate %s", itemData.name)
@@ -300,7 +300,7 @@ function animal:forage()
 
 	self.energy = math.max(0, self.energy - 1)
 
-	local add = self:addItem(item)
+	local add = self.inventory:addItem(item)
 
 	printf("found %s%s%s!%s\n", item.color, item.name, ansi.text.reset, ansi.cursor.show)
 
@@ -372,65 +372,18 @@ function animal:move(location)
 	self:addLog("moved to %s", location)
 end
 
----@param tbl table
-function animal:addItem(tbl)
-	for _, entry in ipairs(self.inventory) do
-		if entry.name == tbl.name then
-			if entry.quantity >= 5 then
-				print("already max stack on " .. tostring(entry.name))
-				return false
-			end
-
-			entry.quantity = math.min(5, (entry.quantity or 1) + 1)
-
-			return true
-		end
-	end
-
-	if #self.inventory >= self.maxItems then
-		print("inventory is full!")
-		return false
-	end
-
-	tbl.quantity = 1
-	table.insert(self.inventory, tbl)
-
-	return true
-end
-
----@param name string
-function animal:removeItem(name)
-	local found = false
-
-	for index, entry in ipairs(self.inventory) do
-		if entry.name == name then
-			entry.quantity = (entry.quantity or 1) - 1
-
-			if entry.quantity <= 0 then
-				table.remove(self.inventory, index)
-			end
-
-
-			found = true
-			break
-		end
-	end
-
-	return found
-end
-
 ---@param name string
 function animal:discard(name)
 	if name == "" then
 		print("no item given to discard")
 		return
 	end
-	if #self.inventory <= 0 and name then
+	if #self.inventory.items <= 0 and name then
 		printf("\"%s\" is not in the inventory!", name)
 		return
 	end
 
-	local remove = self:removeItem(name)
+	local remove = self.inventory:removeItem(name)
 
 	if remove then
 		printf("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset)
@@ -536,7 +489,7 @@ end
 
 -- displays animal stored items
 function animal:showInventory(...)
-	if #self.inventory <= 0 then
+	if #self.inventory.items <= 0 then
 		printf("%s has no item to show up!", self.name)
 		return
 	end
@@ -563,65 +516,7 @@ function animal:showInventory(...)
 		end
 	end
 
-	local entries = {}
-
-	for _, entry in ipairs(self.inventory) do
-		local str
-		local tags = ""
-
-		local passRarity = not filter.rarity or filter.rarity == "all" or entry.rarity == filter.rarity
-		local passType = not filter.type or filter.type == "all" or entry.type == filter.type
-
-		if filter.rarity then
-			tags = tags .. "[" .. entry.rarity .. "]"
-		end
-
-		if filter.type then
-			tags = tags .. "[" .. entry.type .. "]"
-		end
-
-		if passRarity and passType then
-			if tags ~= "" then
-				str = string.format("%s %s", entry.name, tags)
-			else
-				str = entry.name
-			end
-
-			table.insert(entries, {text = str, item = entry.name, rarity = entry.rarity, filter = tags, quantity = entry.quantity})
-		end
-
-	end
-
-	local title = self.name .. " inventory"
-	local bigString = #title
-
-	local shown = {}
-
-	for _, entry in ipairs(entries) do
-		if #entry.text > bigString then
-			bigString = #entry.text
-		end
-	end
-
-	bigString = math.max(bigString, 30) + 4
-
-	writef("\n%s\n", string.rep("=", bigString))
-	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 ))
-	printf("%s", string.rep("=", bigString))
-
-	if #entries == 0 then
-		local message = "nothing here.."
-		printf("| %s %s|", message, string.rep(" ", (bigString - #message) - 4 ))
-	end
-
-	for _, entry in ipairs(entries) do
-		if not shown[entry.item] then
-			printf("| %s%sx%d %s|", entry.item, entry.filter ~= "" and " " .. entry.filter .. " " or " ", entry.quantity, string.rep(" ", (bigString - #entry.text) - 4 - #tostring(entry.quantity) - 2 ))
-			shown[entry.item] = true
-		end
-	end
-
-	printf("%s\n", string.rep("=", bigString))
+	self.inventory:showItems(filter)
 end
 
 -- drain current animal hunger.
