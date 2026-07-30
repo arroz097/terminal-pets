@@ -1,7 +1,7 @@
 local animal = require("animals.animal")
 local util = require("lib.util")
 local ansi = require("lib.ansi")
-local loot = require("lib.loot")
+local loot = require("systems.loot")
 
 local printf = util.printf
 local writef = util.writef

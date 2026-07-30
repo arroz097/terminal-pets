@@ -1,10 +1,10 @@
 local ansi = require("lib.ansi")
 local util = require("lib.util")
 local fsm = require("lib.fsm")
-local loot = require("lib.loot")
 local signal = require("lib.signal")
 
 local inventory = require("systems.inventory")
+local loot = require("systems.loot")
 
 local messages = require("data.messages")
 local items = require("data.items")
