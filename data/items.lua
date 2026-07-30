@@ -55,50 +55,50 @@ local item_list = {
 
 local food_list = {
         -- FOREST / COMMON
-        berry = { type = "food", rarity = "common", hunger = 1 },
-        apple = { type = "food", rarity = "common", hunger = 1 },
-        wild_herb = { type = "food", rarity = "common", hunger = 1 },
-        acorn = { type = "food", rarity = "common", hunger = 1 },
-        worm = { type = "food", rarity = "common", hunger = 1 },
+        berry = { type = "food", rarity = "common", hunger = 2 },
+        apple = { type = "food", rarity = "common", hunger = 2 },
+        wild_herb = { type = "food", rarity = "common", hunger = 2 },
+        acorn = { type = "food", rarity = "common", hunger = 2 },
+        worm = { type = "food", rarity = "common", hunger = 2 },
 
         -- FOREST / RARE
-        mushroom = { type = "food", rarity = "rare", hunger = 2 },
-        rabbit_foot = { type = "food", rarity = "rare", hunger = 2 },
+        mushroom = { type = "food", rarity = "rare", hunger = 3 },
+        rabbit_foot = { type = "food", rarity = "rare", hunger = 3 },
 
         -- FOREST / LEGENDARY
-        bird_egg = { type = "food", rarity = "legendary", hunger = 4 },
+        bird_egg = { type = "food", rarity = "legendary", hunger = 5 },
 
         -- LAKE / COMMON
-        algae = { type = "food", rarity = "common", hunger = 1 },
-        water_plant = { type = "food", rarity = "common", hunger = 1 },
-        snail = { type = "food", rarity = "common", hunger = 1 },
+        algae = { type = "food", rarity = "common", hunger = 2 },
+        water_plant = { type = "food", rarity = "common", hunger = 2 },
+        snail = { type = "food", rarity = "common", hunger = 2 },
 
         -- LAKE / RARE
-        crawfish = { type = "food", rarity = "rare", hunger = 2 },
+        crawfish = { type = "food", rarity = "rare", hunger = 3 },
 
         -- MOUNTAINS / COMMON
-        mountain_herb = { type = "food", rarity = "common", hunger = 1 },
-        snow_berry = { type = "food", rarity = "common", hunger = 1 },
-        beetle = { type = "food", rarity = "common", hunger = 1 },
+        mountain_herb = { type = "food", rarity = "common", hunger = 2 },
+        snow_berry = { type = "food", rarity = "common", hunger = 2 },
+        beetle = { type = "food", rarity = "common", hunger = 2 },
 
         -- MOUNTAINS / RARE
-        mountain_mushroom = { type = "food", rarity = "rare", hunger = 2 },
+        mountain_mushroom = { type = "food", rarity = "rare", hunger = 3 },
 
         -- MOUNTAINS / LEGENDARY
-        hawk_egg = { type = "food", rarity = "legendary", hunger = 4 },
+        hawk_egg = { type = "food", rarity = "legendary", hunger = 5 },
 
         -- CAVE / COMMON
-        cave_grub = { type = "food", rarity = "common", hunger = 1 },
+        cave_grub = { type = "food", rarity = "common", hunger = 2 },
         cave_root = { type = "food", rarity = "common", hunger = 1 },
 
         -- CAVE / RARE
         cave_worm = { type = "food", rarity = "rare", hunger = 2 },
 
         -- CAVE / LEGENDARY
-        cave_egg = { type = "food", rarity = "legendary", hunger = 4 },
+        cave_egg = { type = "food", rarity = "legendary", hunger = 5 },
 }
 
-local function mergeCopy(...)
+local function mergeList(...)
 	local args = {...}
 
 	for i = 1, #args do
@@ -108,7 +108,7 @@ local function mergeCopy(...)
 	end
 end
 
-mergeCopy(item_list, food_list)
+mergeList(item_list, food_list)
 
 function items:getItems()
 	return copy
