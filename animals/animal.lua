@@ -16,6 +16,8 @@ local write = util.write
 ---@class animal
 ---@field name string
 ---@field health integer
+---@field maxEnergy integer
+---@field maxHunger integer
 ---@field energy integer
 ---@field hunger integer
 ---@field type string
@@ -36,6 +38,8 @@ function animal.new(name)
 
 	self.name = name
 	self.health = 100
+	self.maxEnergy = 10
+	self.maxHunger = 10
 	self.energy = 10
 	self.hunger = 10
 	self.type = "none"
@@ -126,6 +130,27 @@ function animal.new(name)
 	end)
 
 	return self
+end
+
+---@param amount integer
+function animal:increaseEnergy(amount)
+	self.energy = math.min(self.maxEnergy, self.energy + amount)
+end
+
+---@param amount integer
+function animal:decreaseEnergy(amount)
+	self.energy = math.max(0, self.energy - amount)
+
+end
+
+---@param amount integer
+function animal:increaseHunger(amount)
+	self.hunger = math.min(self.maxHunger, self.hunger + amount)
+end
+
+---@param amount integer
+function animal:decreaseHunger(amount)
+	self.hunger = math.max(0, self.hunger - amount)
 end
 
 function animal:hasEnergy()
@@ -298,7 +323,7 @@ function animal:forage()
 
 	if not item then return end
 
-	self.energy = math.max(0, self.energy - 1)
+	self:decreaseEnergy(1)
 
 	local add = self.inventory:addItem(item)
 
@@ -320,7 +345,7 @@ function animal:sleep()
 		return
 	end
 
-	self.energy = math.min(10, self.energy + 1)
+	self:increaseEnergy(1)
 	printf("%s slept a little! (%s+1 energy%s)", self.name, ansi.color.cyan, ansi.text.reset)
 
 	self:addLog("did some sleep")
@@ -367,7 +392,7 @@ function animal:move(location)
 
 	util.unlockInput()
 
-	self.energy = math.max(0, self.energy - 1)
+	self:decreaseEnergy(1)
 
 	self:addLog("moved to %s", location)
 end
