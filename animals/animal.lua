@@ -5,6 +5,7 @@ local signal = require("lib.signal")
 
 local inventory = require("systems.inventory")
 local loot = require("systems.loot")
+local logs = require("systems.logs")
 
 local messages = require("data.messages")
 local items = require("data.items")
@@ -21,12 +22,11 @@ local write = util.write
 ---@field energy integer
 ---@field hunger integer
 ---@field type string
----@field logs table
+---@field logs logs
 ---@field inventory inventory
 ---@field private table
 ---@field Changed signal
 ---@field region fsm
----@field maxItems number
 local animal = {}
 animal.__index = animal
 animal._type = "animal"
@@ -43,7 +43,7 @@ function animal.new(name)
 	self.energy = 10
 	self.hunger = 10
 	self.type = "none"
-	self.logs = {}
+	self.logs = logs.new(self)
 	self.inventory = inventory.new(self)
 
 	self.region = self:startRegion("forest")
@@ -67,24 +67,7 @@ function animal.new(name)
 	local lastEnergy = self.energy
 	local lastHunger = self.hunger
 
-	local page = 1
-	local count = 0
-
-	self.Changed:Connect(function(action)
-		if count >= 10 then -- limit per page
-			page = page + 1
-			count = 0
-		end
-
-		if not self.logs[page] then
-			self.logs[page] = {}
-		end
-
-		if action then
-			count = count + 1
-			self.logs[page][count] = action
-		end
-
+	self.Changed:Connect(function(attribute)
 		local energyIncreased = self.energy > lastEnergy
 		local hungerIncreased = self.hunger > lastHunger
 		lastEnergy = self.energy
@@ -119,18 +102,7 @@ function animal.new(name)
 
 		printf("%s %s%s%s", self.name, ansi.text.italic, chosenMessage[math.random(#chosenMessage)], ansi.text.reset)
 
-		count = count + 1
-		if count >= 10 then
-			page = page + 1
-			count = 0
-		end
-
-		if not self.logs[page] then
-			self.logs[page] = {}
-		end
-
-		self.logs[page][count] = string.format("[%s]: said something..", os.date("%H:%M:%S"))
-
+		self:addLog("said something..")
 	end)
 
 	return self
@@ -138,23 +110,38 @@ end
 
 ---@param amount integer
 function animal:increaseEnergy(amount)
+	local oldEnergy = self.energy
 	self.energy = math.min(self.maxEnergy, self.energy + amount)
+	if self.energy ~= oldEnergy then
+		self.Changed:Fire("energy")
+	end
 end
 
 ---@param amount integer
 function animal:decreaseEnergy(amount)
+	local oldEnergy = self.energy
 	self.energy = math.max(0, self.energy - amount)
-
+	if self.energy ~= oldEnergy then
+		self.Changed:Fire("energy")
+	end
 end
 
 ---@param amount integer
 function animal:increaseHunger(amount)
+	local oldHunger = self.hunger
 	self.hunger = math.min(self.maxHunger, self.hunger + amount)
+	if self.hunger ~= oldHunger then
+		self.Changed:Fire("hunger")
+	end
 end
 
 ---@param amount integer
 function animal:decreaseHunger(amount)
+	local oldHunger = self.hunger
 	self.hunger = math.max(0, self.hunger - amount)
+	if self.hunger ~= oldHunger then
+		self.Changed:Fire("hunger")
+	end
 end
 
 function animal:hasEnergy()
@@ -425,9 +412,7 @@ end
 ---@param action string
 ---@param ... any
 function animal:addLog(action, ...)
-	if type(action) ~= "string" or not action then return end
-	local formatted = string.format(action, ...)
-	self.Changed:Fire(string.format("[%s]: %s", os.date("%H:%M:%S"), formatted))
+	self.logs:addLog(action, ...)
 end
 
 -- return current animal stats.
@@ -472,12 +457,12 @@ end
 -- displays animal actions history
 ---@param page number?
 function animal:getLogs(page)
-	if #self.logs <= 0 then
+	if #self.logs.pages <= 0 then
 		printf("%s has no logs history", self.name)
 		return
 	end
 	if page == "" then
-		page = util.getDictionaryLength(self.logs)
+		page = util.getDictionaryLength(self.logs.pages)
 	else
 		page = tonumber(page)
 	end
@@ -485,35 +470,12 @@ function animal:getLogs(page)
 		print("no number given")
 		return
 	end
-	if not self.logs[page] then
+	if not self.logs.pages[page] then
 		printf("page %d does not exist", page)
 		return
 	end
 
-	local totalPages = util.getDictionaryLength(self.logs)
-
-	writef("\npage (%d/%d)", page, totalPages)
-
-	local title = self.name .. " log history"
-	local bigString = #title
-
-	for _, log in ipairs(self.logs[page]) do
-		if #log > bigString then
-			bigString = #log
-		end
-	end
-
-	bigString = math.max(bigString, 30) + 4
-
-	writef("\n%s\n", string.rep("=", bigString))
-	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4))
-	printf("%s", string.rep("=", bigString))
-
-	for _, log in ipairs(self.logs[page]) do
-		printf("| %s %s|", log, string.rep(" ", (bigString - #log) - 4))
-	end
-
-	printf("%s\n", string.rep("=", bigString))
+	self.logs:showLogs(page)
 end
 
 -- displays animal stored items
