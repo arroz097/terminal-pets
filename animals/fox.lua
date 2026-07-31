@@ -29,7 +29,7 @@ end
 ---@param name string
 function fox:steal(name)
 	local victim, err = registry.get(name)
-	if name == "" then
+	if not name then
 		print("no animal given to steal")
 		return
 	end

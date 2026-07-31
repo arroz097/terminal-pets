@@ -42,7 +42,7 @@ function logs.new(owner)
 end
 
 function logs:addLog(action, ...)
-	if type(action) ~= "string" or action == "" then return end
+	if not action or type(action) ~= "string" then return end
 	local formatted = string.format(action, ...)
 	self.NewLog:Fire(string.format("[%s]: %s", os.date("%H:%M:%S"), formatted))
 end

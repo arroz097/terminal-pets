@@ -193,7 +193,7 @@ function animal:getMethods(flag)
 
 	if flags[flag] then
 		showMethods(mt, animal)
-	elseif flag == "" then
+	elseif not flag then
 		showMethods(mt)
 	else
 		printf("%s: flag not valid", flag)
@@ -276,7 +276,7 @@ function animal:eat(name)
 		self:addLog("tried to eat already full")
 		return
 	end
-	if name == "" then
+	if not name then
 		print("no food given")
 		return
 	end
@@ -344,7 +344,7 @@ end
 
 ---@param location string
 function animal:move(location)
-	if location == "" then
+	if not location then
 		print("no region given")
 		return
 	end
@@ -390,7 +390,7 @@ end
 
 ---@param name string
 function animal:discard(name)
-	if name == "" then
+	if not name then
 		print("no item given to discard")
 		return
 	end
@@ -461,7 +461,7 @@ function animal:getLogs(page)
 		printf("%s has no logs history", self.name)
 		return
 	end
-	if page == "" then
+	if not page then
 		page = util.getDictionaryLength(self.logs.pages)
 	else
 		page = tonumber(page)
@@ -499,7 +499,7 @@ function animal:showInventory(...)
 				return
 			end
 
-			if nextVal:sub(1,1) == "-" or nextVal == "" then
+			if not nextVal or nextVal:sub(1,1) == "-" then
 				filter[flag] = "all"
 			else
 				filter[flag] = nextVal
