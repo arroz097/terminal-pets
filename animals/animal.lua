@@ -53,6 +53,10 @@ function animal.new(name)
 		_type = true,
 		new = true,
 		addLog = true,
+		increaseHunger = true,
+		decreaseHunger = true,
+		increaseEnergy = true,
+		decreaseEnergy = true,
 		startRegion = true,
 		hasEnergy = true,
 		hasHunger = true,
@@ -327,7 +331,7 @@ function animal:forage()
 
 	local add = self.inventory:addItem(item)
 
-	printf("found %s%s%s!%s\n", item.color, item.name, ansi.text.reset, ansi.cursor.show)
+	printf("found %s%s%s!%s", item.color, item.name, ansi.text.reset, ansi.cursor.show)
 
 	if add then
 		self:addLog("found %s", item.name)
