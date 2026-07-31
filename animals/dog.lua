@@ -33,8 +33,8 @@ function dog:bark()
 		return
 	end
 
-	self.energy = math.max(0, self.energy - 1)
 	printf("%s has barked!", self.name)
+	self:decreaseEnergy(1)
 
 	self:addLog("did a bark")
 end
@@ -53,9 +53,9 @@ function dog:fetch(item)
 		self:addLog("tried to fetch")
 	end
 
-	self.energy = math.max(0, self.energy - 2)
-	self.hunger = math.max(0, self.hunger - 1)
 	printf("%s fetched the %s%s%s!", self.name, ansi.text.italic, item, ansi.text.reset)
+	self:decreaseEnergy(2)
+	self:decreaseHunger(1)
 
 	self:addLog("fetched %s", item)
 end
@@ -79,8 +79,8 @@ function dog:dig()
 
 	util.lockInput()
 
-	self.energy = math.max(0, self.energy - 3)
-	self.hunger = math.max(0, self.hunger - 1)
+	self:decreaseEnergy(3)
+	self:decreaseHunger(1)
 
 	writef("%s started digging!\n%s", self.name, ansi.cursor.hide)
 

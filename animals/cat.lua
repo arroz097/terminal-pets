@@ -35,9 +35,9 @@ function cat:meow()
 		return
 	end
 
-	self.energy = math.max(0, self.energy - 1)
-	self.hunger = math.max(0, self.hunger - 1)
 	printf("%s has meow!", self.name)
+	self:decreaseEnergy(1)
+	self:decreaseHunger(1)
 
 	self:addLog("did a meow")
 end
@@ -51,9 +51,9 @@ function cat:scratch()
 		return
 	end
 
-	self.energy = math.max(0, self.energy - 1)
-	self.hunger = math.max(0, self.hunger - 1)
 	printf("%s scratches something!", self.name)
+	self:decreaseEnergy(1)
+	self:decreaseHunger(1)
 
 	self:addLog("did some scratch")
 end
@@ -62,8 +62,7 @@ end
 -- +3 energy
 -- -1 hunger
 function cat:nap()
-	if self.hunger <= 0 then
-		printf("%s seems to be %sstarving%s, can't take a nap!", self.name, ansi.color.yellow, ansi.text.reset)
+	if not self:hasHunger() then
 		self:addLog("tried to nap while starving")
 		return
 	end
@@ -73,9 +72,9 @@ function cat:nap()
 		return
 	end
 
-	self.energy = math.min(10, self.energy + 3)
-	self.hunger = math.max(0, self.hunger - 1)
 	printf("%s took a nap! (%s+3 energy%s)", self.name, ansi.color.cyan, ansi.text.reset)
+	self:increaseEnergy(3)
+	self:decreaseHunger(1)
 
 	self:addLog("took a nap")
 end
