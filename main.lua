@@ -26,7 +26,7 @@ local aliases = {
 ansi:enterScreen()
 
 print("animal types...: cat, dog, fox\n")
-print("animal commands: eat, sleep, stats, map, logs [page number], inventory, move [region name], discard [item name], drainHunger\n")
+print("animal commands: forage, eat [food name], sleep, stats, map, logs [page], inventory [flag], move [region name], discard [item name], drainHunger\n")
 print("debug commands.: properties\n")
 printf("%smethods%s to list current animal type methods.", ansi.text.italic, ansi.text.reset)
 printf("%smethods -all or -a %s to list all animal methods.\n", ansi.text.italic, ansi.text.reset)
