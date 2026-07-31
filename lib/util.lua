@@ -34,12 +34,15 @@ function util.unlockInput()
 end
 
 ---@param s string
+---@param pattern? string
 ---@return table result
 -- splits a string to n parts
-function util.split(s)
+function util.split(s, pattern)
 	local result = {}
 
-	for word in string.gmatch(s, "%S+") do
+	pattern = pattern or "%S+"
+
+	for word in string.gmatch(s, pattern) do
 		table.insert(result, word)
 	end
 
