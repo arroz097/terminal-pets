@@ -68,6 +68,11 @@ function box:addLine(line)
 	end
 end
 
+---@return boolean
+function box:isEmpty()
+	return #self.lines == 0
+end
+
 function box:display()
 	self:update()
 	if not self.hasTitle then
