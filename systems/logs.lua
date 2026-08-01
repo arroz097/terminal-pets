@@ -1,5 +1,6 @@
 local ansi = require("lib.ansi")
 local util = require("lib.util")
+local box = require("lib.box")
 local signal = require("lib.signal")
 
 local printf, writef = util.printf, util.writef
@@ -52,27 +53,16 @@ function logs:showLogs(page)
 
 	writef("\npage (%d/%d)", page, totalPages)
 
-	local title = self.owner.name .. " log history"
-	local bigString = #title
+	local logsBox = box.new()
+	logsBox.Title = string.format("%s%s log history%s", ansi.text.bold, self.owner.name, ansi.text.reset)
+	logsBox.titleAlignment = box.alignments.Center
 
 	for _, log in ipairs(self.pages[page]) do
-		if #log > bigString then
-			bigString = #log
-		end
+		logsBox:addLine(log)
 	end
 
-	bigString = math.max(bigString, 30) + 4
-
-	writef("\n%s\n", string.rep("=", bigString))
-	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4))
-	printf("%s", string.rep("=", bigString))
-
-	for _, log in ipairs(self.pages[page]) do
-		printf("| %s %s|", log, string.rep(" ", (bigString - #log) - 4))
-	end
-
-	printf("%s\n", string.rep("=", bigString))
-
+	logsBox:display()
+	print()
 end
 
 return logs

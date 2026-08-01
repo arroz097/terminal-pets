@@ -1,6 +1,7 @@
 local ansi = require("lib.ansi")
 local util = require("lib.util")
 local fsm = require("lib.fsm")
+local box = require("lib.box")
 local signal = require("lib.signal")
 
 local inventory = require("systems.inventory")
@@ -285,8 +286,9 @@ function animal:eat(name)
 
 	for _, entry in ipairs(self.inventory.items) do
 		if itemData and itemData.name == entry.name and itemData.type == "food" then
-			self.hunger = math.min(10, self.hunger + itemData.hunger)
 			printf("ate %s (%s+%d hunger%s)", itemData.name, ansi.color.yellow, itemData.hunger, ansi.text.reset)
+
+			self:decreaseHunger(itemData.hunger)
 			self.inventory:removeItem(entry.name)
 			found = true
 
@@ -418,40 +420,28 @@ end
 -- return current animal stats.
 function animal:getStats()
 
-	local title = self.name .. " stats"
-	local bigString = #title
-
 	local energyColor = self.energy > 6 and ansi.color.brightGreen or self.energy > 3 and ansi.color.brightYellow or ansi.color.red
 	local hungerColor = self.hunger > 6 and ansi.color.brightGreen or self.hunger > 3 and ansi.color.brightYellow or ansi.color.red
 	local healthColor = self.health > 60 and ansi.color.brightGreen or self.health > 30 and ansi.color.brightYellow or ansi.color.red
 
+	local statsBox = box.new()
+	statsBox.Title = string.format("%s%s stats%s", ansi.text.bold, self.name, ansi.text.reset)
+	statsBox.titleAlignment = box.alignments.Center
+	--statsBox.columnChar = ""
+
 	local lines = {
-		{ text = "name..: " .. self.name, name = "name..: ", value = self.name,	color = nil },
-		{ text = "type..: " .. self.type, name = "type..: ", value = self.type,	color = nil },
-		{ text = "health: " .. self.health, name = "health: ", value = self.health, color = healthColor },
-		{ text = "energy: " .. self.energy, name = "energy: ", value = self.energy, color = energyColor },
-		{ text = "hunger: " .. self.hunger, name = "hunger: ", value = self.hunger, color = hungerColor },
-		{ text = "region: " .. self.region.state, name = "region: ", value = self.region.state, color = nil},
+		string.format("name..: %s", self.name),
+		string.format("type..: %s", self.type),
+		string.format("health: %s%d%s", healthColor, self.health, ansi.text.reset),
+		string.format("energy: %s%d%s", energyColor, self.energy, ansi.text.reset),
+		string.format("hunger: %s%d%s", hungerColor, self.hunger, ansi.text.reset),
+		string.format("region: %s", self.region.state)
 	}
 
-	for _, line in ipairs(lines) do
-		if #line.text > bigString then
-			bigString = #line.text
-		end
-	end
+	statsBox:addLine(lines)
 
-	bigString = math.max(bigString, 15) + 4
-
-	writef("\n%s\n", string.rep("=", bigString))
-	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4))
-	printf("%s", string.rep("=", bigString))
-
-	for _, line in ipairs(lines) do
-		local color = line.color or "" -- "" representa string vazia nula sem caracteres
-		printf("| %s%s%s%s %s|", line.name, color, line.value, ansi.text.reset, string.rep(" ", (bigString - #line.text) - 4))
-	end
-
-	printf("%s\n", string.rep("=", bigString))
+	statsBox:display()
+	print()
 end
 
 -- displays animal actions history
@@ -516,7 +506,7 @@ function animal:drainHunger()
 
 	while self.hunger > 0 do
 		util.sleep(1)
-		self.hunger = math.max(0, self.hunger - 1)
+		self:decreaseHunger(1)
 		printf("%s %shunger%s is now %d", self.name, ansi.color.yellow, ansi.text.reset, self.hunger)
 	end
 

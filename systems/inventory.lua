@@ -1,5 +1,6 @@
 local ansi = require("lib.ansi")
 local util = require("lib.util")
+local box = require("lib.box")
 
 local printf, writef = util.printf, util.writef
 
@@ -70,10 +71,13 @@ end
 
 ---@param filter table
 function inventory:showItems(filter)
-	local entries = {}
+
+	local inventoryBox = box.new()
+	inventoryBox.Title = string.format("%s%s inventory%s", ansi.text.bold, self.owner.name, ansi.text.reset)
+	inventoryBox.titleAlignment = box.alignments.Center
+	local shown = {}
 
 	for _, entry in ipairs(self.items) do
-		local str
 		local tags = ""
 
 		local passRarity = not filter.rarity or filter.rarity == "all" or entry.rarity == filter.rarity
@@ -82,54 +86,22 @@ function inventory:showItems(filter)
 		if filter.rarity then
 			tags = tags .. "[" .. entry.rarity .. "]"
 		end
-
 		if filter.type then
 			tags = tags .. "[" .. entry.type .. "]"
 		end
 
-		if passRarity and passType then
-			if tags ~= "" then
-				str = string.format("%s %s", entry.name, tags)
-			else
-				str = entry.name
-			end
-
-			table.insert(entries, {text = str, item = entry.name, rarity = entry.rarity, filter = tags, quantity = entry.quantity})
-		end
-
-	end
-
-	local title = self.owner.name .. " inventory"
-	local bigString = #title
-
-	local shown = {}
-
-	for _, entry in ipairs(entries) do
-		if #entry.text > bigString then
-			bigString = #entry.text
+		if not shown[entry.name] and passRarity and passType then
+			shown[entry.name] = true
+			inventoryBox:addLine(string.format("%s x%d %s", entry.name, entry.quantity, tags))
 		end
 	end
 
-	bigString = math.max(bigString, 30) + 4
-
-	writef("\n%s\n", string.rep("=", bigString))
-	printf("| %s%s%s %s|", ansi.text.bold, title, ansi.text.reset, string.rep(" ", (bigString - #title) - 4 ))
-	printf("%s", string.rep("=", bigString))
-
-	if #entries == 0 then
-		local message = "nothing here.."
-		printf("| %s %s|", message, string.rep(" ", (bigString - #message) - 4 ))
+	if inventoryBox:isEmpty() then
+		inventoryBox:addLine("nothing here..")
 	end
 
-	for _, entry in ipairs(entries) do
-		if not shown[entry.item] then
-			printf("| %s%sx%d %s|", entry.item, entry.filter ~= "" and " " .. entry.filter .. " " or " ", entry.quantity, string.rep(" ", (bigString - #entry.text) - 4 - #tostring(entry.quantity) - 2 ))
-			shown[entry.item] = true
-		end
-	end
-
-	printf("%s\n", string.rep("=", bigString))
-
+	inventoryBox:display()
+	print()
 end
 
 return inventory
