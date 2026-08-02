@@ -15,7 +15,7 @@ local animals = {
 
 local aliases = {
 	stats = "showStats",
-	logs = "showtLogs",
+	logs = "showLogs",
 	methods = "showMethods",
 	inventory = "showInventory",
 	properties = "showProperties",
