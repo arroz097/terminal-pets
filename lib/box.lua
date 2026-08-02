@@ -57,15 +57,61 @@ function box:update()
 	self.lineLength = math.max(self.lineLength, self.minWidth) + 4
 end
 
----@param line string|table
-function box:addLine(line)
-	if type(line) == "string" then
-		table.insert(self.lines, line)
-	elseif type(line) == "table" then
-		for _, _line in ipairs(line) do
-			table.insert(self.lines, _line)
+---@private
+---@param str string
+---@return integer space
+function box:getSpace(str)
+	local inner = self.lineLength - 4
+	local space = inner - visualLength(str)
+	return space
+end
+
+---@private
+---@param space integer
+---@param align string
+---@return integer left
+---@return integer right
+function box:getAlignment(space, align)
+	local left, right
+
+	if align == box.alignments.Center or align == "Center" then
+		left, right = math.floor(space / 2), math.ceil(space / 2)
+	elseif align == box.alignments.Right or align == "Right" then
+		left, right = space, 0
+	else
+		left, right = 0, space
+	end
+
+	return left, right
+end
+
+---@param ... string|table
+function box:addLine(...)
+	local args = {...}
+	local lines = {}
+
+	for i = 1, #args do
+		local arg = args[i]
+
+		if type(arg) ~= "table" then
+			table.insert(lines, arg)
+		elseif type(arg) == "table" then
+			lines = arg
+		end
+
+		for _, line in ipairs(lines) do
+			if type(line) ~= "string" then
+				print("box: addLine string only")
+				return
+			end
+			table.insert(self.lines, line)
 		end
 	end
+end
+
+-- tbd
+function box:addTitle()
+
 end
 
 ---@return boolean
@@ -78,27 +124,17 @@ function box:display()
 	if not self.hasTitle then
 		printf("%s", string.rep(self.rowChar, self.lineLength))
 	else
-		local inner = self.lineLength - 4
-		local space = inner - visualLength(self.Title)
+		local space = self:getSpace(self.Title)
+		local left, right = self:getAlignment(space, self.titleAlignment)
 
-		local left, right
-
-		if self.titleAlignment == box.alignments.Center then
-			left, right = math.floor(space / 2), math.ceil(space / 2)
-		elseif self.titleAlignment == box.alignments.Right then
-			left, right = space, 0
-		else
-			-- left alignment
-			left, right = 0, space
-		end
 		writef("\n%s\n", string.rep(self.rowChar, self.lineLength))
 		printf("%s %s%s%s %s", self.columnChar, string.rep(" ", left), self.Title, string.rep(" ", right), self.columnChar)
 		printf("%s", string.rep(self.rowChar, self.lineLength))
 	end
 
 	for _, line in ipairs(self.lines) do
-		local inner = self.lineLength - 4
-		local space = inner - visualLength(line)
+		local space = self:getSpace(line)
+
 		printf("%s %s %s%s", self.columnChar, line, string.rep(" ", space), self.columnChar)
 	end
 
