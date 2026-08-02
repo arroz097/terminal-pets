@@ -118,7 +118,6 @@ function box:addLine(...)
 		align = function(alignment)
 			for _, l in ipairs(inserted) do
 				l.alignment = alignment
-				print(alignment)
 			end
 		end,
 	}
