@@ -164,12 +164,12 @@ function animal:hasHunger()
 end
 
 ---@param flag string
-function animal:getMethods(flag)
+function animal:showMethods(flag)
 	local mt = getmetatable(self)
 
 	local flags = { ["-a"] = true, ["-all"] = true }
 
-	local function showMethods(...)
+	local function methods(...)
 		local args = {...}
 
 		print()
@@ -193,9 +193,9 @@ function animal:getMethods(flag)
 	end
 
 	if flags[flag] then
-		showMethods(mt, animal)
+		methods(mt, animal)
 	elseif not flag then
-		showMethods(mt)
+		methods(mt)
 	else
 		printf("%s: flag not valid", flag)
 	end
@@ -418,16 +418,16 @@ function animal:addLog(action, ...)
 end
 
 -- return current animal stats.
-function animal:getStats()
+function animal:showStats()
 
 	local energyColor = self.energy > 6 and ansi.color.brightGreen or self.energy > 3 and ansi.color.brightYellow or ansi.color.red
 	local hungerColor = self.hunger > 6 and ansi.color.brightGreen or self.hunger > 3 and ansi.color.brightYellow or ansi.color.red
 	local healthColor = self.health > 60 and ansi.color.brightGreen or self.health > 30 and ansi.color.brightYellow or ansi.color.red
 
 	local statsBox = box.new()
-	statsBox.Title = string.format("%s%s stats%s", ansi.text.bold, self.name, ansi.text.reset)
+	statsBox.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
 	statsBox.titleAlignment = box.alignments.Center
-	--statsBox.columnChar = ""
+	statsBox.minWidth = 15
 
 	local lines = {
 		string.format("name..: %s", self.name),
@@ -446,7 +446,7 @@ end
 
 -- displays animal actions history
 ---@param page number?
-function animal:getLogs(page)
+function animal:showLogs(page)
 	if #self.logs.pages <= 0 then
 		printf("%s has no logs history", self.name)
 		return

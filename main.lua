@@ -14,13 +14,13 @@ local animals = {
 }
 
 local aliases = {
-	stats = "getStats",
-	logs = "getLogs",
-	methods = "getMethods",
+	stats = "showStats",
+	logs = "showtLogs",
+	methods = "showMethods",
 	inventory = "showInventory",
 	properties = "showProperties",
-	drainhunger = "drainHunger",
 	map = "showMap",
+	drainhunger = "drainHunger",
 }
 
 ansi:enterScreen()
