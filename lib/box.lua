@@ -5,11 +5,11 @@ local visualLength = util.visualLength
 
 ---@class box
 ---@field Title string
----@field hasTitle boolean
----@field titleAlignment string
----@field minWidth integer
----@field rowChar string
----@field columnChar string
+---@field HasTitle boolean
+---@field TitleAlignment string
+---@field MinWidth integer
+---@field RowChar string
+---@field ColumnChar string
 ---@field private lineLength integer
 ---@field private lines table
 local box = {}
@@ -26,15 +26,15 @@ box.alignments = {
 function box.new(title)
 	local self = setmetatable({}, box)
 
-	self.Title = title or "Sample text"
-	self.titleAlignment = box.alignments.Left
-	self.minWidth = 20
-	self.hasTitle = true
+	self.Title = title or "Example title"
+	self.TitleAlignment = box.alignments.Left
+	self.MinWidth = 20
+	self.HasTitle = true
 
-	self.rowChar = "="
-	self.columnChar = "|"
+	self.RowChar = "="
+	self.ColumnChar = "|"
 
-	self.lineLength = math.max(visualLength(self.Title), self.minWidth) + 4
+	self.lineLength = math.max(visualLength(self.Title), self.MinWidth) + 4
 	self.lines = {}
 
 	return self
@@ -49,12 +49,12 @@ function box:update()
 	end
 
 	for _, line in ipairs(self.lines) do
-		if visualLength(line) > self.lineLength then
-			self.lineLength = visualLength(line)
+		if visualLength(line.text) > self.lineLength then
+			self.lineLength = visualLength(line.text)
 		end
 	end
 
-	self.lineLength = math.max(self.lineLength, self.minWidth) + 4
+	self.lineLength = math.max(self.lineLength, self.MinWidth) + 4
 end
 
 ---@private
@@ -85,13 +85,17 @@ function box:getAlignment(space, align)
 	return left, right
 end
 
+---@class box.lineGroup
+---@fieldd align function
 ---@param ... string|table
+---@return box.lineGroup?
 function box:addLine(...)
 	local args = {...}
-	local lines = {}
+	local inserted = {}
 
 	for i = 1, #args do
 		local arg = args[i]
+		local lines = {}
 
 		if type(arg) ~= "table" then
 			table.insert(lines, arg)
@@ -104,9 +108,20 @@ function box:addLine(...)
 				print("box: addLine string only")
 				return
 			end
-			table.insert(self.lines, line)
+			local lineTable = {text = line, alignment = box.alignments.Left}
+			table.insert(self.lines, lineTable)
+			table.insert(inserted, lineTable)
 		end
 	end
+
+	return {
+		align = function(alignment)
+			for _, l in ipairs(inserted) do
+				l.alignment = alignment
+				print(alignment)
+			end
+		end,
+	}
 end
 
 -- tbd
@@ -121,24 +136,26 @@ end
 
 function box:display()
 	self:update()
-	if not self.hasTitle then
-		printf("%s", string.rep(self.rowChar, self.lineLength))
+
+	if not self.HasTitle then
+		printf("%s", string.rep(self.RowChar, self.lineLength))
 	else
 		local space = self:getSpace(self.Title)
-		local left, right = self:getAlignment(space, self.titleAlignment)
+		local left, right = self:getAlignment(space, self.TitleAlignment)
 
-		writef("\n%s\n", string.rep(self.rowChar, self.lineLength))
-		printf("%s %s%s%s %s", self.columnChar, string.rep(" ", left), self.Title, string.rep(" ", right), self.columnChar)
-		printf("%s", string.rep(self.rowChar, self.lineLength))
+		printf("\n%s", string.rep(self.RowChar, self.lineLength))
+		printf("%s %s%s%s %s", self.ColumnChar, string.rep(" ", left), self.Title, string.rep(" ", right), self.ColumnChar)
+		printf("%s", string.rep(self.RowChar, self.lineLength))
 	end
 
 	for _, line in ipairs(self.lines) do
-		local space = self:getSpace(line)
+		local space = self:getSpace(line.text)
+		local left, right = self:getAlignment(space, line.alignment)
 
-		printf("%s %s %s%s", self.columnChar, line, string.rep(" ", space), self.columnChar)
+		printf("%s %s%s%s %s", self.ColumnChar, string.rep(" ", left), line.text, string.rep(" ", right), self.ColumnChar)
 	end
 
-	printf("%s", string.rep(self.rowChar, self.lineLength))
+	printf("%s", string.rep(self.RowChar, self.lineLength))
 end
 
 return box

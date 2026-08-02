@@ -426,16 +426,16 @@ function animal:showStats()
 
 	local statsBox = box.new()
 	statsBox.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
-	statsBox.titleAlignment = box.alignments.Center
-	statsBox.minWidth = 15
+	statsBox.TitleAlignment = box.alignments.Center
+	statsBox.MinWidth = 15
 
 	local lines = {
-		string.format("name..: %s", self.name),
-		string.format("type..: %s", self.type),
-		string.format("health: %s%d%s", healthColor, self.health, ansi.text.reset),
-		string.format("energy: %s%d%s", energyColor, self.energy, ansi.text.reset),
-		string.format("hunger: %s%d%s", hungerColor, self.hunger, ansi.text.reset),
-		string.format("region: %s", self.region.state)
+		string.format("Name..: %s", self.name),
+		string.format("Type..: %s", self.type),
+		string.format("Health: %s%d%s", healthColor, self.health, ansi.text.reset),
+		string.format("Energy: %s%d%s", energyColor, self.energy, ansi.text.reset),
+		string.format("Hunger: %s%d%s", hungerColor, self.hunger, ansi.text.reset),
+		string.format("Region: %s", self.region.state)
 	}
 
 	statsBox:addLine(lines)

@@ -55,7 +55,7 @@ function logs:showLogs(page)
 
 	local logsBox = box.new()
 	logsBox.Title = string.format("%s%s log history%s", ansi.text.bold, self.owner.name, ansi.text.reset)
-	logsBox.titleAlignment = box.alignments.Center
+	logsBox.TitleAlignment = box.alignments.Center
 
 	for _, log in ipairs(self.pages[page]) do
 		logsBox:addLine(log)

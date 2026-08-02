@@ -74,7 +74,7 @@ function inventory:showItems(filter)
 
 	local inventoryBox = box.new()
 	inventoryBox.Title = string.format("%s%s inventory%s", ansi.text.bold, self.owner.name, ansi.text.reset)
-	inventoryBox.titleAlignment = box.alignments.Center
+	inventoryBox.TitleAlignment = box.alignments.Center
 	local shown = {}
 
 	for _, entry in ipairs(self.items) do
