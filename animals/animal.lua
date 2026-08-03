@@ -109,6 +109,12 @@ function animal.new(name)
 	return self
 end
 
+---@param action string
+---@param ... any
+function animal:addLog(action, ...)
+	self.logs:addLog(action, ...)
+end
+
 ---@param amount integer
 function animal:increaseEnergy(amount)
 	local oldEnergy = self.energy
@@ -163,44 +169,6 @@ function animal:hasHunger()
 	return true
 end
 
----@param flag string
-function animal:showMethods(flag)
-	local mt = getmetatable(self)
-
-	local flags = { ["-a"] = true, ["-all"] = true }
-
-	local function methods(...)
-		local args = {...}
-
-		print()
-		for i = 1, #args do
-			local tbl = args[i]
-			printf("%s[%s]%s:", ansi.text.bold, tbl._type, ansi.text.reset)
-			for func, fn in pairs(tbl) do
-				if not self.private[func] and type(fn) == "function" then
-
-					local info = debug.getinfo(fn)
-
-					if info.nparams > 1 then
-						printf("%s%s %s%s", ansi.color.white, func, "[parameter]", ansi.text.reset)
-					else
-						printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
-					end
-				end
-			end
-			print()
-		end
-	end
-
-	if flags[flag] then
-		methods(mt, animal)
-	elseif not flag then
-		methods(mt)
-	else
-		printf("%s: flag not valid", flag)
-	end
-end
-
 ---@return table<string, boolean> properties
 -- returns a copy of properties as a set (name: true)
 function animal:getProperties()
@@ -213,35 +181,6 @@ function animal:getProperties()
 	end
 
 	return property
-end
-
--- outputs current animal properties
-function animal:showProperties()
-	print()
-	for key, value in pairs(self) do
-		if type(value) ~= "function" then
-			printf("%s%s: (%s%s)", ansi.color.white, tostring(key), tostring(type(value)), ansi.text.reset)
-		end
-	end
-	print()
-end
-
--- displays map navigation
-function animal:showMap()
-	local places = {
-		forest = "forest",
-		lake = "lake",
-		cave = "cave",
-		mountains = "mountains",
-	}
-
-	if places[self.region.state] then
-		places[self.region.state] = string.format("%s%s%s%s", ansi.text.underline, ansi.text.bold, self.region.state, ansi.text.reset)
-	end
-
-	printf("\n%s ← %s → %s", places.mountains, places.forest, places.cave)
-	print("               ↓")
-	printf("              %s\n", places.lake)
 end
 
 ---@param initial string
@@ -290,9 +229,9 @@ function animal:eat(name)
 
 			self:decreaseHunger(itemData.hunger)
 			self.inventory:removeItem(entry.name)
-			found = true
-
 			self:addLog("ate %s", itemData.name)
+
+			found = true
 			break
 		elseif itemData and itemData.name == entry.name and itemData.type ~= "food" then
 			printf("%s is not a food", itemData.name)
@@ -411,12 +350,6 @@ function animal:discard(name)
 	end
 end
 
----@param action string
----@param ... any
-function animal:addLog(action, ...)
-	self.logs:addLog(action, ...)
-end
-
 -- return current animal stats.
 function animal:showStats()
 
@@ -468,6 +401,24 @@ function animal:showLogs(page)
 	self.logs:showLogs(page)
 end
 
+-- displays map navigation
+function animal:showMap()
+	local places = {
+		forest = "forest",
+		lake = "lake",
+		cave = "cave",
+		mountains = "mountains",
+	}
+
+	if places[self.region.state] then
+		places[self.region.state] = string.format("%s%s%s%s", ansi.text.underline, ansi.text.bold, self.region.state, ansi.text.reset)
+	end
+
+	printf("\n%s ← %s → %s", places.mountains, places.forest, places.cave)
+	print("               ↓")
+	printf("              %s\n", places.lake)
+end
+
 -- displays animal stored items
 function animal:showInventory(...)
 	if #self.inventory.items <= 0 then
@@ -498,6 +449,55 @@ function animal:showInventory(...)
 	end
 
 	self.inventory:showItems(filter)
+end
+
+---@param flag string
+function animal:showMethods(flag)
+	local mt = getmetatable(self)
+
+	local flags = { ["-a"] = true, ["-all"] = true }
+
+	local function methods(...)
+		local args = {...}
+
+		print()
+		for i = 1, #args do
+			local tbl = args[i]
+			printf("%s[%s]%s:", ansi.text.bold, tbl._type, ansi.text.reset)
+			for func, fn in pairs(tbl) do
+				if not self.private[func] and type(fn) == "function" then
+
+					local info = debug.getinfo(fn)
+
+					if info.nparams > 1 then
+						printf("%s%s %s%s", ansi.color.white, func, "[parameter]", ansi.text.reset)
+					else
+						printf("%s%s%s", ansi.color.white, func, ansi.text.reset)
+					end
+				end
+			end
+			print()
+		end
+	end
+
+	if flags[flag] then
+		methods(mt, animal)
+	elseif not flag then
+		methods(mt)
+	else
+		printf("%s: flag not valid", flag)
+	end
+end
+
+-- outputs current animal properties
+function animal:showProperties()
+	print()
+	for key, value in pairs(self) do
+		if type(value) ~= "function" then
+			printf("%s%s: (%s%s)", ansi.color.white, tostring(key), tostring(type(value)), ansi.text.reset)
+		end
+	end
+	print()
 end
 
 -- drain current animal hunger.
