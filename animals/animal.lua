@@ -17,9 +17,10 @@ local write = util.write
 
 ---@class animal
 ---@field name string
----@field health integer
+---@field maxHealth integer
 ---@field maxEnergy integer
 ---@field maxHunger integer
+---@field health integer
 ---@field energy integer
 ---@field hunger integer
 ---@field type string
@@ -33,16 +34,20 @@ animal.__index = animal
 animal._type = "animal"
 
 ---@param name string
+---@param maxHealth? integer
+---@param  maxEnergy? integer
+---@param maxHunger? integer
 ---@return animal
-function animal.new(name)
+function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	local self = setmetatable({}, animal)
 
 	self.name = name
-	self.health = 100
-	self.maxEnergy = 10
-	self.maxHunger = 10
-	self.energy = 10
-	self.hunger = 10
+	self.maxHealth = maxHealth or 100
+	self.maxEnergy = maxEnergy or 10
+	self.maxHunger = maxHunger or 10
+	self.health = self.maxHealth
+	self.energy = self.maxEnergy
+	self.hunger = self.maxHunger
 	self.type = "none"
 	self.logs = logs.new(self)
 	self.inventory = inventory.new(self)
@@ -353,9 +358,13 @@ end
 -- return current animal stats.
 function animal:showStats()
 
-	local energyColor = self.energy > 6 and ansi.color.brightGreen or self.energy > 3 and ansi.color.brightYellow or ansi.color.red
-	local hungerColor = self.hunger > 6 and ansi.color.brightGreen or self.hunger > 3 and ansi.color.brightYellow or ansi.color.red
-	local healthColor = self.health > 60 and ansi.color.brightGreen or self.health > 30 and ansi.color.brightYellow or ansi.color.red
+	local healthRatio = self.health / self.maxHealth
+	local energyRatio = self.energy / self.maxEnergy
+	local hungerRatio = self.hunger / self.maxHunger
+
+	local energyColor = energyRatio >= 0.6 and ansi.color.brightGreen or energyRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
+	local hungerColor = hungerRatio > 0.6 and ansi.color.brightGreen or hungerRatio > 0.3 and ansi.color.brightYellow or ansi.color.red
+	local healthColor = healthRatio > 0.6 and ansi.color.brightGreen or healthRatio > 0.3 and ansi.color.brightYellow or ansi.color.red
 
 	local statsBox = box.new()
 	statsBox.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
@@ -372,7 +381,6 @@ function animal:showStats()
 	}
 
 	statsBox:addLine(lines)
-
 	statsBox:display()
 	print()
 end
