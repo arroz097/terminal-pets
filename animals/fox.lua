@@ -14,10 +14,11 @@ fox._type = "fox"
 ---@return fox
 ---@param name string
 function fox.new(name)
-	local self = setmetatable(animal.new(name), fox)
+	local self = setmetatable(animal.new(name, 150), fox)
 	---@cast self fox
 
 	self.type = "fox"
+
 	printf("\ncreated %s %s%s%s!", self.type, ansi.color.white, self.name, ansi.text.reset)
 	self:addLog("spawned")
 

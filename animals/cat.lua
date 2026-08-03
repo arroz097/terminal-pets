@@ -13,7 +13,7 @@ cat._type = "cat"
 ---@return cat
 -- creates cat class
 function cat.new(name)
-	local self = setmetatable(animal.new(name), cat)
+	local self = setmetatable(animal.new(name, 50), cat)
 	---@cast self cat
 
 	self.type = "cat"
