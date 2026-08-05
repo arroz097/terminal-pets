@@ -77,22 +77,22 @@ function dog:dig()
 
 	if not item then return end
 
-	util.lockInput()
-
 	self:decreaseEnergy(3)
 	self:decreaseHunger(1)
 
 	writef("%s started digging!\n%s", self.name, ansi.cursor.hide)
 
+	util.animate("digging", 1)
+	--[[
 	for i = 1, 4 do
 		util.sleep(1)
 		writef("digging%s\r", string.rep(".", i))
 	end
+	]]
 
 	writef("found %s%s%s!%s\n", item.color, item.name, ansi.text.reset, ansi.cursor.show)
 
 	if item.name ~= "nothing" then
-		util.unlockInput()
 
 		local input
 		repeat
@@ -116,7 +116,6 @@ function dog:dig()
 		self:addLog("got lucky and found nothing")
 	end
 
-	util.unlockInput()
 end
 
 function dog:howl()
