@@ -1,3 +1,5 @@
+local ansi = require("lib.ansi")
+
 local util = {}
 
 ---@return boolean isWindows
@@ -100,6 +102,26 @@ end
 function util.write(str)
 	io.write(str)
 	io.flush()
+end
+
+---@param action string
+---@param duration? integer
+function util.animate(action, duration)
+	duration = duration or 1
+
+	util.lockInput()
+	util.write(ansi.cursor.hide)
+	for _ = 1, duration do
+
+		for i = 1, 3 do
+			util.writef("%s%s\r", action, string.rep(".", i))
+			util.sleep(1)
+		end
+
+		util.writef("%s    \r", action)
+	end
+	util.write(ansi.cursor.show)
+	util.unlockInput()
 end
 
 return util
