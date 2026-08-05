@@ -216,7 +216,7 @@ end
 function animal:eat(name)
 	local itemData = items:getItems()[name]
 
-	if self.hunger >= 10 then
+	if self.hunger >= self.maxHunger then
 		printf("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset)
 		self:addLog("tried to eat already full")
 		return
@@ -230,9 +230,10 @@ function animal:eat(name)
 
 	for _, entry in ipairs(self.inventory.items) do
 		if itemData and itemData.name == entry.name and itemData.type == "food" then
+			util.animate("eating " .. itemData.name, 1)
 			printf("ate %s (%s+%d hunger%s)", itemData.name, ansi.color.yellow, itemData.hunger, ansi.text.reset)
 
-			self:decreaseHunger(itemData.hunger)
+			self:increaseHunger(itemData.hunger)
 			self.inventory:removeItem(entry.name)
 			self:addLog("ate %s", itemData.name)
 
@@ -260,6 +261,8 @@ function animal:forage()
 
 	if not item then return end
 
+	util.animate("foraging", 1)
+
 	self:decreaseEnergy(1)
 
 	local add = self.inventory:addItem(item)
@@ -276,14 +279,16 @@ end
 -- basic recovery.
 -- +1 energy
 function animal:sleep()
-	if self.energy >= 10 then
+	if self.energy >= self.maxEnergy then
 		printf("%s is already on max %senergy%s!", self.name, ansi.color.cyan, ansi.text.reset)
 		self:addLog("tried to sleep while rested")
 		return
 	end
 
-	self:increaseEnergy(1)
-	printf("%s slept a little! (%s+1 energy%s)", self.name, ansi.color.cyan, ansi.text.reset)
+	util.animate("sleeping")
+
+	self:increaseEnergy(2)
+	printf("%s slept a little! (%s+2 energy%s)", self.name, ansi.color.cyan, ansi.text.reset)
 
 	self:addLog("did some sleep")
 end
@@ -315,19 +320,9 @@ function animal:move(location)
 		return
 	end
 
-	util.lockInput()
-
-	write(ansi.cursor.hide)
-	for i = 1, 3 do
-		writef("moving to %s%s\r", location, string.rep(".", i))
-		io.flush()
-		util.sleep(1)
-	end
-	write(ansi.cursor.show)
+	util.animate("moving to " .. location, 1)
 
 	printf("%s is now on %s", self.name, self.region.state)
-
-	util.unlockInput()
 
 	self:decreaseEnergy(1)
 
