@@ -29,6 +29,7 @@ local write = util.write
 ---@field private table
 ---@field Changed signal
 ---@field region fsm
+---@field onSignal boolean
 local animal = {}
 animal.__index = animal
 animal._type = "animal"
@@ -69,11 +70,15 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	}
 
 	self.Changed = signal.new()
+	self.onSignal = false
 
 	local lastEnergy = self.energy
 	local lastHunger = self.hunger
 
 	self.Changed:Connect(function(attribute)
+		if self.onSignal then return end
+		self.onSignal = true
+
 		local energyIncreased = self.energy > lastEnergy
 		local hungerIncreased = self.hunger > lastHunger
 		lastEnergy = self.energy
@@ -277,7 +282,7 @@ function animal:forage()
 end
 
 -- basic recovery.
--- +1 energy
+-- +2 energy
 function animal:sleep()
 	if self.energy >= self.maxEnergy then
 		printf("%s is already on max %senergy%s!", self.name, ansi.color.cyan, ansi.text.reset)
@@ -429,7 +434,9 @@ function animal:showInventory(...)
 		return
 	end
 
-	local validFlags = {["-r"] = "rarity", ["-t"] = "type"}
+	local validFlags = {
+		["-r"] = "rarity", ["-t"] = "type",
+	}
 	local args = {...}
 	local filter = {}
 

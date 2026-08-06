@@ -45,7 +45,6 @@ repeat
 
 until name ~= ""
 
---io.write(ansi:moveTo(2, 1), ansi.clearDown)
 local pet = animals[animalType].new(name)
 
 writef("\n%sexit%s to leave.\n\n", ansi.text.italic, ansi.text.reset)
@@ -67,6 +66,7 @@ repeat
 	if methodName == "exit" then
 		-- 
 	elseif pet[methodName] and not properties[methodName] and not pet.private[methodName] then
+		pet.onSignal = false
 		pet[methodName](pet, table.unpack(split, 2)) -- pet como self nas funções
 	else
 		writef("\n%s\"%s\"%s is not a valid method of %s %s\n", ansi.text.italic, action, ansi.text.reset, animalType, name)
