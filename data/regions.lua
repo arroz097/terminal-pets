@@ -36,6 +36,7 @@ regions.data = {
 			"snail",
 			"water_plant",
 			"crawfish",
+			"tilapia",
 		},
 		fishing = {},
 	},
