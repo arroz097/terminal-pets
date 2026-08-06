@@ -435,7 +435,10 @@ function animal:showInventory(...)
 	end
 
 	local validFlags = {
-		["-r"] = "rarity", ["-t"] = "type",
+		["-r"] = "rarity",
+		["-t"] = "type",
+		["--rarity"] = "rarity",
+		["--type"] = "type",
 	}
 	local args = {...}
 	local filter = {}
@@ -465,7 +468,10 @@ end
 function animal:showMethods(flag)
 	local mt = getmetatable(self)
 
-	local flags = { ["-a"] = true, ["-all"] = true }
+	local flags = {
+		["-a"] = true,
+		["--all"] = true
+	}
 
 	local function methods(...)
 		local args = {...}
