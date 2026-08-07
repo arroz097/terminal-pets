@@ -531,11 +531,13 @@ end
 function animal:drainHunger()
 	util.lockInput()
 
+	write(ansi.cursor.hide)
 	while self.hunger > 0 do
-		util.sleep(1)
 		self:decreaseHunger(1)
-		printf("%s %shunger%s is now %d", self.name, ansi.color.yellow, ansi.text.reset, self.hunger)
+		writef("%s %shunger%s is now %s%s%s\r", self.name, ansi.color.yellow, ansi.text.reset,ansi.color.yellow, self.hunger, ansi.text.reset)
+		util.sleep(1)
 	end
+	writef("\n%s", ansi.cursor.show)
 
 	self:addLog("fully drained hunger")
 
