@@ -60,6 +60,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 		_type = true,
 		new = true,
 		addLog = true,
+		getProperties = true,
 		increaseHunger = true,
 		decreaseHunger = true,
 		increaseEnergy = true,
