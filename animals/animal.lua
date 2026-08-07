@@ -75,9 +75,20 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	local lastEnergy = self.energy
 	local lastHunger = self.hunger
 
-	self.Changed:Connect(function(attribute)
+	local actionCount = 0
+
+	self.Changed:Connect(function(attribute, action)
 		if self.onSignal then return end
 		self.onSignal = true
+
+		if attribute == "energy" and action == "decrease" then
+			actionCount = actionCount + 1
+
+			if actionCount > 2 then
+				actionCount = 0
+				self:decreaseHunger(1)
+			end
+		end
 
 		local energyIncreased = self.energy > lastEnergy
 		local hungerIncreased = self.hunger > lastHunger
@@ -130,7 +141,7 @@ function animal:increaseEnergy(amount)
 	local oldEnergy = self.energy
 	self.energy = math.min(self.maxEnergy, self.energy + amount)
 	if self.energy ~= oldEnergy then
-		self.Changed:Fire("energy")
+		self.Changed:Fire("energy", "increase")
 	end
 end
 
@@ -139,7 +150,7 @@ function animal:decreaseEnergy(amount)
 	local oldEnergy = self.energy
 	self.energy = math.max(0, self.energy - amount)
 	if self.energy ~= oldEnergy then
-		self.Changed:Fire("energy")
+		self.Changed:Fire("energy", "decrease")
 	end
 end
 
@@ -148,7 +159,7 @@ function animal:increaseHunger(amount)
 	local oldHunger = self.hunger
 	self.hunger = math.min(self.maxHunger, self.hunger + amount)
 	if self.hunger ~= oldHunger then
-		self.Changed:Fire("hunger")
+		self.Changed:Fire("hunger", "increase")
 	end
 end
 
@@ -157,7 +168,7 @@ function animal:decreaseHunger(amount)
 	local oldHunger = self.hunger
 	self.hunger = math.max(0, self.hunger - amount)
 	if self.hunger ~= oldHunger then
-		self.Changed:Fire("hunger")
+		self.Changed:Fire("hunger", "decrease")
 	end
 end
 
@@ -266,7 +277,7 @@ function animal:forage()
 
 	if not item then return end
 
-	util.animate("foraging", 1)
+	util.animate("foraging")
 
 	self:decreaseEnergy(1)
 
