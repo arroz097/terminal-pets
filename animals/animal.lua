@@ -28,6 +28,7 @@ local write = util.write
 ---@field inventory inventory
 ---@field private table
 ---@field Changed signal
+---@field Died signal
 ---@field region fsm
 ---@field onSignal boolean
 local animal = {}
@@ -52,6 +53,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	self.type = "none"
 	self.logs = logs.new(self)
 	self.inventory = inventory.new(self)
+	self.onSignal = false
 
 	self.region = self:startRegion("forest")
 
@@ -73,7 +75,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	}
 
 	self.Changed = signal.new()
-	self.onSignal = false
+	self.Died = signal.new()
 
 	local lastEnergy = self.energy
 	local lastHunger = self.hunger
@@ -192,6 +194,11 @@ function animal:decreaseHealth(amount)
 
 	if self.health ~= oldHealth then
 		self.Changed:Fire("health", "decrease")
+	end
+
+	if self.health <= 0 then
+		self.health = 0
+		self.Died:Fire()
 	end
 end
 
