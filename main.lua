@@ -54,6 +54,13 @@ local properties = pet:getProperties()
 registry.add(pet.name, pet)
 
 local command
+
+pet.Died:Connect(function()
+	command = "exit"
+	printf("\n%s has %sdied%s...", pet.name, ansi.color.red, ansi.text.reset)
+	util.sleep(3)
+end)
+
 repeat
 	writef("%s action: ", name)
 	command = io.read()
