@@ -157,6 +157,11 @@ function animal:decreaseEnergy(amount)
 	if self.energy ~= oldEnergy then
 		self.Changed:Fire("energy", "decrease")
 	end
+
+	if self.hunger <= 0 then
+		local damage = math.floor(self.maxHealth * 0.05) -- 5%
+		self:decreaseHealth(damage)
+	end
 end
 
 ---@param amount integer
