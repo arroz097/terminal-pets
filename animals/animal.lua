@@ -65,6 +65,8 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 		decreaseHunger = true,
 		increaseEnergy = true,
 		decreaseEnergy = true,
+		increaseHealth = true,
+		decreaseHealth = true,
 		startRegion = true,
 		hasEnergy = true,
 		hasHunger = true,
@@ -170,6 +172,26 @@ function animal:decreaseHunger(amount)
 	self.hunger = math.max(0, self.hunger - amount)
 	if self.hunger ~= oldHunger then
 		self.Changed:Fire("hunger", "decrease")
+	end
+end
+
+---@param amount integer
+function animal:increaseHealth(amount)
+	local oldHealth = self.health
+	self.health = math.min(self.maxHealth, self.health + amount)
+
+	if self.health ~= oldHealth then
+		self.Changed:Fire("health", "increase")
+	end
+end
+
+---@param amount integer
+function animal:decreaseHealth(amount)
+	local oldHealth = self.health
+	self.health = math.max(0, self.health - amount)
+
+	if self.health ~= oldHealth then
+		self.Changed:Fire("health", "decrease")
 	end
 end
 
@@ -375,8 +397,8 @@ function animal:showStats()
 	local hungerRatio = self.hunger / self.maxHunger
 
 	local energyColor = energyRatio >= 0.6 and ansi.color.brightGreen or energyRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
-	local hungerColor = hungerRatio > 0.6 and ansi.color.brightGreen or hungerRatio > 0.3 and ansi.color.brightYellow or ansi.color.red
-	local healthColor = healthRatio > 0.6 and ansi.color.brightGreen or healthRatio > 0.3 and ansi.color.brightYellow or ansi.color.red
+	local hungerColor = hungerRatio >= 0.6 and ansi.color.brightGreen or hungerRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
+	local healthColor = healthRatio >= 0.6 and ansi.color.brightGreen or healthRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
 
 	local statsBox = box.new()
 	statsBox.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
