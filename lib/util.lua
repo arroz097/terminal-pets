@@ -137,4 +137,21 @@ function util.findByPrefix(list, prefix, extractor)
 	return nil
 end
 
+---@param question string
+function util.ask(question)
+	local input
+
+	repeat
+		util.writef("%s? (Y/N)\n", question)
+		input = string.lower(io.read())
+
+	until input == "y" or input == "n"
+
+	if input == "y" then
+		return true
+	end
+
+	return false
+end
+
 return util
