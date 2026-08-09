@@ -124,4 +124,17 @@ function util.animate(action, duration)
 	util.unlockInput()
 end
 
+---@param list table
+---@param prefix string
+---@param extractor function
+---@return table? item
+function util.findByPrefix(list, prefix, extractor)
+	for _, item in ipairs(list) do
+		if util.startsWith(extractor(item), prefix) then
+			return item
+		end
+	end
+	return nil
+end
+
 return util
