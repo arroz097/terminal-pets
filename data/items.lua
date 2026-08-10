@@ -59,40 +59,40 @@ local food_list = {
         apple = { type = "food", rarity = "common", hunger = 2 },
         wild_herb = { type = "food", rarity = "common", hunger = 1 },
         acorn = { type = "food", rarity = "common", hunger = 2 },
-        worm = { type = "food", rarity = "common", hunger = 1 },
+        worm = { type = "food", rarity = "common", hunger = 1, energy = 1 },
 
         -- LAKE / COMMON
-        algae = { type = "food", rarity = "common", hunger = 2 },
+        algae = { type = "food", rarity = "common", hunger = 2, energy = 1 },
         water_plant = { type = "food", rarity = "common", hunger = 2 },
         snail = { type = "food", rarity = "common", hunger = 1 },
 
         -- MOUNTAINS / COMMON
-        mountain_herb = { type = "food", rarity = "common", hunger = 2 },
+        mountain_herb = { type = "food", rarity = "common", hunger = 1, energy = 2 },
         snow_berry = { type = "food", rarity = "common", hunger = 2 },
-        beetle = { type = "food", rarity = "common", hunger = 1 },
+        beetle = { type = "food", rarity = "common", hunger = 1, energy = 1 },
 
         -- CAVE / COMMON
         cave_grub = { type = "food", rarity = "common", hunger = 1 },
         cave_root = { type = "food", rarity = "common", hunger = 1 },
 
         -- FOREST / RARE
-        mushroom = { type = "food", rarity = "rare", hunger = 3 },
-        rabbit_foot = { type = "food", rarity = "rare", hunger = 3 },
+        mushroom = { type = "food", rarity = "rare", hunger = 3, energy = 1 },
+        rabbit_foot = { type = "food", rarity = "rare", hunger = 3, energy = 2 },
 
         -- LAKE / RARE
         crawfish = { type = "food", rarity = "rare", hunger = 3 },
 
         -- MOUNTAINS / RARE
-        mountain_mushroom = { type = "food", rarity = "rare", hunger = 3 },
+        mountain_mushroom = { type = "food", rarity = "rare", hunger = 3, energy = 2 },
 
         -- CAVE / RARE
-        cave_worm = { type = "food", rarity = "rare", hunger = 2 },
+        cave_worm = { type = "food", rarity = "rare", hunger = 2, energy = 1 },
 
         -- FOREST / LEGENDARY
         bird_egg = { type = "food", rarity = "legendary", hunger = 5 },
 
 	-- LAKE / LEGENDARY
-	tilapia = { type = "food", rarity = "legendary", hunger = 6},
+	tilapia = { type = "food", rarity = "legendary", hunger = 6, energy = 3},
 
         -- MOUNTAINS / LEGENDARY
         hawk_egg = { type = "food", rarity = "legendary", hunger = 5 },
