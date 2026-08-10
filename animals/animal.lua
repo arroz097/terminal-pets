@@ -265,8 +265,6 @@ end
 -- eat some food.
 ---@param name string?
 function animal:eat(name)
-	local itemData = items:getItems()[name]
-
 	if self.hunger >= self.maxHunger then
 		printf("%s is already on max %shunger%s!", self.name, ansi.color.yellow, ansi.text.reset)
 		self:addLog("tried to eat already full")
@@ -277,27 +275,42 @@ function animal:eat(name)
 		return
 	end
 
-	local found = false
+	local item = util.findByPrefix(self.inventory.items, name, function(entry)
+		return entry.name
+	end)
 
-	for _, entry in ipairs(self.inventory.items) do
-		if itemData and itemData.name == entry.name and itemData.type == "food" then
-			util.animate("eating " .. itemData.name, 1)
-			printf("ate %s (%s+%d hunger%s)", itemData.name, ansi.color.yellow, itemData.hunger, ansi.text.reset)
+	if not item then
+		printf("%s is not in the inventory", name)
+		return
+	end
 
-			self:increaseHunger(itemData.hunger)
-			self.inventory:removeItem(entry.name)
-			self:addLog("ate %s", itemData.name)
-
-			found = true
-			break
-		elseif itemData and itemData.name == entry.name and itemData.type ~= "food" then
-			printf("%s is not a food", itemData.name)
+	if item.name ~= name then
+		if not util.ask("eat " .. item.name) then
 			return
 		end
 	end
 
-	if not found then
-		printf("%s is not in the inventory", name)
+	if item.type == "food" then
+		util.animate("eating " .. item.name)
+		local stats = ""
+
+		if item.hunger then
+			stats = stats .. string.format("(%s+%d hunger%s)", ansi.color.yellow, item.hunger, ansi.text.reset)
+			self:increaseHunger(item.hunger)
+		end
+
+		if item.energy then
+			stats = stats .. string.format("(%s+%d energy%s)", ansi.color.cyan, item.energy, ansi.text.reset)
+			self:increaseEnergy(item.energy)
+		end
+
+		self.inventory:removeItem(item.name)
+
+		printf("ate %s %s", item.name, stats)
+
+		self:addLog("ate %s", item.name)
+	elseif item.type ~= "food" then
+		printf("%s is not a food", item.name)
 	end
 end
 
@@ -354,8 +367,19 @@ function animal:move(location)
 		print("already on " .. location)
 		return
 	end
-	if not self.region.transitions[location] then
-		print(location .. " does not exist")
+
+	local keys = {}
+
+	for k in pairs(self.region.transitions) do
+		table.insert(keys, k)
+	end
+
+	local where = util.findByPrefix(keys, location, function(entry)
+		return entry
+	end) --[[@as string]]
+
+	if not where then
+		printf("%s does not exist", location)
 		return
 	end
 
@@ -364,20 +388,26 @@ function animal:move(location)
 		return
 	end
 
-	local to = self.region:dispatch(location)
+	if where ~= location then
+		if not util.ask("move to " .. where) then
+			return
+		end
+	end
+
+	local to = self.region:dispatch(where)
 
 	if not to then
-		printf("can't go to %s through %s", location, self.region.state)
+		printf("can't go to %s through %s", where, self.region.state)
 		return
 	end
 
-	util.animate("moving to " .. location, 1)
+	util.animate("moving to " .. where, 1)
 
 	printf("%s is now on %s", self.name, self.region.state)
 
 	self:decreaseEnergy(1)
 
-	self:addLog("moved to %s", location)
+	self:addLog("moved to %s", where)
 end
 
 ---@param name string
@@ -386,18 +416,28 @@ function animal:discard(name)
 		print("no item given to discard")
 		return
 	end
-	if #self.inventory.items <= 0 and name then
-		printf("\"%s\" is not in the inventory!", name)
+
+	local item = util.findByPrefix(self.inventory.items, name, function(entry)
+		return entry.name
+	end)
+
+	if not item then
+		printf("%s is not in the inventory", name)
+		self:addLog("tried to discard inexistent item")
 		return
 	end
 
-	local remove = self.inventory:removeItem(name)
+	if item.name ~= name then
+		if not util.ask("discard " .. item.name) then
+			return
+		end
+	end
+
+	local remove = self.inventory:removeItem(item.name)
 
 	if remove then
-		printf("discarded item %s\"%s\"%s", ansi.text.italic, name, ansi.text.reset)
-	else
-		printf("\"%s\" is not in the inventory!", name)
-		self:addLog("tried to discard inexistent item")
+		printf("discarded item %s\"%s\"%s", ansi.text.italic, item.name, ansi.text.reset)
+		self:addLog("discarded %s", item.name)
 	end
 end
 
