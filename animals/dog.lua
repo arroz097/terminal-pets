@@ -51,6 +51,7 @@ function dog:fetch(item)
 
 	if not self:hasEnergy() then
 		self:addLog("tried to fetch")
+		return
 	end
 
 	printf("%s fetched the %s%s%s!", self.name, ansi.text.italic, item, ansi.text.reset)
@@ -65,11 +66,8 @@ end
 -- -1 hunger
 function dog:dig()
 
-	local state = self.energy < 3 and "energy" or self.hunger <= 0 and "hunger" or nil
-	local stateColor = state == "energy" and ansi.color.cyan or state == "hunger" and ansi.color.yellow
-	if state then
-		printf("%s has no %s%s%s to dig!", self.name, stateColor, state, ansi.text.reset)
-		self:addLog("tried to dig while lacking %s", state)
+	if not self:hasEnergy() then
+		self:addLog("tried to dig")
 		return
 	end
 
@@ -80,7 +78,7 @@ function dog:dig()
 
 	writef("%s started digging!\n%s", self.name, ansi.cursor.hide)
 
-	util.animate("digging", 1)
+	util.animate("digging")
 
 	self:decreaseEnergy(3)
 	self:decreaseHunger(1)
