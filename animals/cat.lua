@@ -67,10 +67,12 @@ function cat:nap()
 		return
 	end
 
-	if self.energy >= 10 then
-		printf("%s is already max on %senergy%s!", self.name, ansi.color.cyan, ansi.text.reset)
+	if self.energy >= self.maxEnergy then
+		printf("%s is already on max %senergy%s!", self.name, ansi.color.cyan, ansi.text.reset)
 		return
 	end
+
+	util.animate("taking a nap")
 
 	printf("%s took a nap! (%s+3 energy%s)", self.name, ansi.color.cyan, ansi.text.reset)
 	self:increaseEnergy(3)
