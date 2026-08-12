@@ -86,7 +86,7 @@ function box:getAlignment(space, align)
 end
 
 ---@class box.lineGroup
----@fieldd align function
+---@field align function
 ---@param ... string|table
 ---@return box.lineGroup?
 function box:addLine(...)
