@@ -77,15 +77,13 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	self.Changed = signal.new()
 	self.Died = signal.new()
 
-	local lastEnergy = self.energy
-	local lastHunger = self.hunger
-
 	local actionCount = 0
 
 	self.Changed:Connect(function(attribute, action)
 		if self.onSignal then return end
 		self.onSignal = true
 
+		-- hunger decrease logic
 		if attribute == "energy" and action == "decrease" then
 			actionCount = actionCount + 1
 
@@ -95,41 +93,18 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 			end
 		end
 
-		local energyIncreased = self.energy > lastEnergy
-		local hungerIncreased = self.hunger > lastHunger
-		lastEnergy = self.energy
-		lastHunger = self.hunger
+		-- hint state logic
+		if attribute == "energy" or attribute == "hunger" and action == "decrease" then
+			local level = messages.level[self[attribute]]
+			local message = messages[attribute][level]
+			local shouldHint = math.random(2) -- 50% chance
 
-		if energyIncreased then return end
-		if hungerIncreased then return end
+			if not message then return end
+			if shouldHint ~= 1 then return end
+			printf("%s %s%s%s", self.name, ansi.text.italic, message[math.random(#message)], ansi.text.reset)
 
-		local shouldAct = math.random(2) -- 50% chance
-		local chosenMessage = {}
-
-		if not hungerIncreased then
-			local level = messages.level[self.hunger]
-			local message = messages.hunger[level]
-
-			if message then
-				table.insert(chosenMessage, message[math.random(#message)])
-			end
+			self:addLog("said something..")
 		end
-
-		if not energyIncreased then
-			local level = messages.level[self.energy]
-			local message = messages.energy[level]
-
-			if message then
-				table.insert(chosenMessage, message[math.random(#message)])
-			end
-		end
-
-		if #chosenMessage == 0 then return end
-		if shouldAct ~= 1 then return end
-
-		printf("%s %s%s%s", self.name, ansi.text.italic, chosenMessage[math.random(#chosenMessage)], ansi.text.reset)
-
-		self:addLog("said something..")
 	end)
 
 	return self
