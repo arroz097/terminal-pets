@@ -94,7 +94,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 		end
 
 		-- hint state logic
-		if attribute == "energy" or attribute == "hunger" and action == "decrease" then
+		if (attribute == "energy" or attribute == "hunger") and action == "decrease" then
 			local level = messages.level[self[attribute]]
 			local message = messages[attribute][level]
 			local shouldHint = math.random(2) -- 50% chance
