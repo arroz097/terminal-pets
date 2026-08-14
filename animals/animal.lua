@@ -260,9 +260,8 @@ function animal:eat(name)
 	end
 
 	if item.name ~= name then
-		if not util.ask("eat " .. item.name) then
-			return
-		end
+		local question = util.ask("eat " .. item.name)
+		if not question then return end
 	end
 
 	if item.type == "food" then
@@ -364,9 +363,8 @@ function animal:move(location)
 	end
 
 	if where ~= location then
-		if not util.ask("move to " .. where) then
-			return
-		end
+		local question = util.ask("move to " .. where)
+		if not question then return end
 	end
 
 	local to = self.region:dispatch(where)
@@ -376,7 +374,7 @@ function animal:move(location)
 		return
 	end
 
-	util.animate("moving to " .. where, 1)
+	util.animate("moving to " .. where)
 
 	printf("%s is now on %s", self.name, self.region.state)
 
@@ -403,9 +401,8 @@ function animal:discard(name)
 	end
 
 	if item.name ~= name then
-		if not util.ask("discard " .. item.name) then
-			return
-		end
+		local question = util.ask("discard " .. item.name)
+		if not question then return end
 	end
 
 	local remove = self.inventory:removeItem(item.name)
