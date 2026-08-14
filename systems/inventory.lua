@@ -1,6 +1,5 @@
 local ansi = require("lib.ansi")
 local util = require("lib.util")
-local box = require("lib.box")
 
 local printf, writef = util.printf, util.writef
 
@@ -67,41 +66,6 @@ function inventory:removeItem(name)
 
 	return found
 
-end
-
----@param filter table
-function inventory:showItems(filter)
-
-	local inventoryBox = box.new()
-	inventoryBox.Title = string.format("%s%s inventory%s", ansi.text.bold, self.owner.name, ansi.text.reset)
-	inventoryBox.TitleAlignment = box.alignments.Center
-	local shown = {}
-
-	for _, entry in ipairs(self.items) do
-		local tags = ""
-
-		local passRarity = not filter.rarity or filter.rarity == "all" or entry.rarity == filter.rarity
-		local passType = not filter.type or filter.type == "all" or entry.type == filter.type
-
-		if filter.rarity then
-			tags = tags .. "[" .. entry.rarity .. "]"
-		end
-		if filter.type then
-			tags = tags .. "[" .. entry.type .. "]"
-		end
-
-		if not shown[entry.name] and passRarity and passType then
-			shown[entry.name] = true
-			inventoryBox:addLine(string.format("%s x%d %s", entry.name, entry.quantity, tags))
-		end
-	end
-
-	if inventoryBox:isEmpty() then
-		inventoryBox:addLine("nothing here..")
-	end
-
-	inventoryBox:display()
-	print()
 end
 
 return inventory

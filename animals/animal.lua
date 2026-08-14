@@ -37,7 +37,7 @@ animal._type = "animal"
 
 ---@param name string
 ---@param maxHealth? integer
----@param  maxEnergy? integer
+---@param maxEnergy? integer
 ---@param maxHunger? integer
 ---@return animal
 function animal.new(name, maxHealth, maxEnergy, maxHunger)
@@ -52,7 +52,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	self.hunger = self.maxHunger
 	self.type = "none"
 	self.logs = logs.new()
-	self.inventory = inventory.new(self)
+	self.inventory = inventory.new()
 	self.onSignal = false
 
 	self.region = self:startRegion("forest")
@@ -531,7 +531,36 @@ function animal:showInventory(...)
 		end
 	end
 
-	self.inventory:showItems(filter)
+	local inventoryBox = box.new()
+	inventoryBox.Title = string.format("%s%s inventory%s", ansi.text.bold, self.name, ansi.text.reset)
+	inventoryBox.TitleAlignment = box.alignments.Center
+	local shown = {}
+
+	for _, entry in ipairs(self.inventory.items) do
+		local tags = ""
+
+		local passRarity = not filter.rarity or filter.rarity == "all" or entry.rarity == filter.rarity
+		local passType = not filter.type or filter.type == "all" or entry.type == filter.type
+
+		if filter.rarity then
+			tags = tags .. "[" .. entry.rarity .. "]"
+		end
+		if filter.type then
+			tags = tags .. "[" .. entry.type .. "]"
+		end
+
+		if not shown[entry.name] and passRarity and passType then
+			shown[entry.name] = true
+			inventoryBox:addLine(string.format("%s x%d %s", entry.name, entry.quantity, tags))
+		end
+	end
+
+	if inventoryBox:isEmpty() then
+		inventoryBox:addLine("nothing here..")
+	end
+
+	inventoryBox:display()
+	print()
 end
 
 ---@param flag string
