@@ -51,7 +51,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	self.energy = self.maxEnergy
 	self.hunger = self.maxHunger
 	self.type = "none"
-	self.logs = logs.new(self)
+	self.logs = logs.new()
 	self.inventory = inventory.new(self)
 	self.onSignal = false
 
@@ -451,7 +451,8 @@ function animal:showLogs(page)
 		return
 	end
 	if not page then
-		page = util.getDictionaryLength(self.logs.pages)
+		-- default last page
+		page = self.logs:getTotalPages()
 	else
 		page = tonumber(page)
 	end
@@ -464,7 +465,18 @@ function animal:showLogs(page)
 		return
 	end
 
-	self.logs:showLogs(page)
+	writef("\npage (%d/%d)", page, self.logs:getTotalPages())
+
+	local logsBox = box.new()
+	logsBox.Title = string.format("%s%s log history%s", ansi.text.bold, self.name, ansi.text.reset)
+	logsBox.TitleAlignment = box.alignments.Center
+
+	for _, log in ipairs(self.logs.pages[page]) do
+		logsBox:addLine(log)
+	end
+
+	logsBox:display()
+	print()
 end
 
 -- displays map navigation
