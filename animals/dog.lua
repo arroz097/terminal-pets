@@ -65,7 +65,6 @@ end
 -- -3 energy
 -- -1 hunger
 function dog:dig()
-
 	if not self:hasEnergy() then
 		self:addLog("tried to dig")
 		return
@@ -74,7 +73,6 @@ function dog:dig()
 	local item = loot.roll(self.region.state, "dig")
 
 	if not item then return end
-
 
 	writef("%s started digging!\n%s", self.name, ansi.cursor.hide)
 
@@ -85,30 +83,22 @@ function dog:dig()
 
 	writef("found %s%s%s!%s\n", item.color, item.name, ansi.text.reset, ansi.cursor.show)
 
-	if item.name ~= "nothing" then
+	local question = util.ask("keep " .. string.format("\"%s\"", item.name))
 
-		local input
-		repeat
-			writef("keep item \"%s\"? (Y/N)\n", item.name)
-			input = io.read()
-		until string.lower(input) == "y" or string.lower(input) == "n"
-
-		if string.lower(input) == "y" then
-			local add = self.inventory:addItem(item)
-			if add then
-				printf("stored %s", item.name)
-				self:addLog("found %s", item.name)
-			else
-				self:addLog("tried to store item with full inventory")
-			end
-		elseif string.lower(input) == "n" then
-			printf("discarded item \"%s\"", item.name)
-			self:addLog("discarded %s", item.name)
-		end
-	else
-		self:addLog("got lucky and found nothing")
+	if not question then
+		printf("discarded %s", item.name)
+		self:addLog("discarded %s", item.name)
+		return
 	end
 
+	local didAdd = self.inventory:addItem(item)
+
+	if didAdd then
+		printf("stored %s", item.name)
+		self:addLog("found %s", item.name)
+	else
+		self:addLog("tried to store %s", item.name)
+	end
 end
 
 function dog:howl()
