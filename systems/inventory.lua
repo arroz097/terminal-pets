@@ -1,7 +1,4 @@
-local ansi = require("lib.ansi")
 local util = require("lib.util")
-
-local printf, writef = util.printf, util.writef
 
 ---@class inventory
 ---@field private owner animal
@@ -73,6 +70,16 @@ function inventory:getItem(name)
 			return entry, index
 		end
 	end
+end
+
+---@return table items
+function inventory:getItems()
+	return self.items
+end
+
+---@return integer item
+function inventory:getTotalItems()
+	return util.getDictionaryLength(self:getItems())
 end
 
 return inventory
