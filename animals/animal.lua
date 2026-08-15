@@ -446,7 +446,7 @@ end
 -- displays animal actions history
 ---@param page number?
 function animal:showLogs(page)
-	if #self.logs.pages <= 0 then
+	if self.logs:getTotalPages() <= 0 then
 		printf("%s has no logs history", self.name)
 		return
 	end
@@ -460,7 +460,10 @@ function animal:showLogs(page)
 		print("no number given")
 		return
 	end
-	if not self.logs.pages[page] then
+
+	local givenPage = self.logs:getPage(page)
+
+	if not givenPage then
 		printf("page %d does not exist", page)
 		return
 	end
@@ -471,7 +474,7 @@ function animal:showLogs(page)
 	logsBox.Title = string.format("%s%s log history%s", ansi.text.bold, self.name, ansi.text.reset)
 	logsBox.TitleAlignment = box.alignments.Center
 
-	for _, log in ipairs(self.logs.pages[page]) do
+	for _, log in ipairs(givenPage) do
 		logsBox:addLine(log)
 	end
 
