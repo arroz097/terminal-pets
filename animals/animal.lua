@@ -177,7 +177,6 @@ function animal:decreaseHealth(amount)
 	end
 
 	if self.health <= 0 then
-		self.health = 0
 		self.Died:Fire()
 	end
 end
@@ -283,7 +282,7 @@ function animal:eat(name)
 		printf("ate %s %s", item.name, stats)
 
 		self:addLog("ate %s", item.name)
-	elseif item.type ~= "food" then
+	else
 		printf("%s is not a food", item.name)
 	end
 end
@@ -296,18 +295,17 @@ function animal:forage()
 	end
 
 	local item = loot.roll(self.region.state, "forage")
-
 	if not item then return end
 
 	util.animate("foraging")
 
-	self:decreaseEnergy(1)
-
-	local add = self.inventory:addItem(item)
+	local didAdd = self.inventory:addItem(item)
 
 	printf("found %s%s%s!%s", item.color, item.name, ansi.text.reset, ansi.cursor.show)
 
-	if add then
+	self:decreaseEnergy(1)
+
+	if didAdd then
 		self:addLog("found %s", item.name)
 	else
 		self:addLog("tried to store item with full inventory")
@@ -405,9 +403,9 @@ function animal:discard(name)
 		if not question then return end
 	end
 
-	local remove = self.inventory:removeItem(item.name)
+	local didRemove = self.inventory:removeItem(item.name)
 
-	if remove then
+	if didRemove then
 		printf("discarded item %s\"%s\"%s", ansi.text.italic, item.name, ansi.text.reset)
 		self:addLog("discarded %s", item.name)
 	end
