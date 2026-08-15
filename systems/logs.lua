@@ -39,12 +39,25 @@ function logs.new(owner)
 	return self
 end
 
+---@param action string
+---@param ... any
 function logs:addLog(action, ...)
 	if not action or type(action) ~= "string" then return end
 	local formatted = string.format(action, ...)
 	self.LogAdded:Fire(string.format("[%s]: %s", os.date("%H:%M:%S"), formatted))
 end
 
+---@param page integer
+---@return table? page
+function logs:getPage(page)
+	return self.pages[page]
+end
+
+function logs:clear()
+	self.pages = {}
+end
+
+---@return integer totalPages
 function logs:getTotalPages()
 	return util.getDictionaryLength(self.pages)end
 
