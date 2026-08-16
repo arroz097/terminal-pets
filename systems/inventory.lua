@@ -2,8 +2,8 @@ local util = require("lib.util")
 
 ---@class inventory
 ---@field private owner animal
----@field maxItems integer
----@field items table
+---@field private maxItems integer
+---@field private items table
 local inventory = {}
 inventory.__index = inventory
 inventory._type = "inventory"
