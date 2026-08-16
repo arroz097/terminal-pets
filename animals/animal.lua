@@ -478,33 +478,36 @@ end
 
 -- return current animal stats.
 function animal:showStats()
-
-	local healthRatio = self.health / self.maxHealth
-	local energyRatio = self.energy / self.maxEnergy
-	local hungerRatio = self.hunger / self.maxHunger
-	local thirstRatio = self.thirst / self.maxThirst
-
-	local energyColor = energyRatio >= 0.6 and ansi.color.brightGreen or energyRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
-	local hungerColor = hungerRatio >= 0.6 and ansi.color.brightGreen or hungerRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
-	local healthColor = healthRatio >= 0.6 and ansi.color.brightGreen or healthRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
-	local thirstColor = thirstRatio >= 0.6 and ansi.color.brightGreen or thirstRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
-
 	local statsBox = box.new()
 	statsBox.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
 	statsBox.TitleAlignment = box.alignments.Center
 	statsBox.MinWidth = 15
 
 	local lines = {
-		string.format("Name..: %s", self.name),
-		string.format("Type..: %s", self.type),
-		string.format("Health: %s%d%s", healthColor, self.health, ansi.text.reset),
-		string.format("Energy: %s%d%s", energyColor, self.energy, ansi.text.reset),
-		string.format("Hunger: %s%d%s", hungerColor, self.hunger, ansi.text.reset),
-		string.format("Thirst: %s%d%s", thirstColor, self.thirst, ansi.text.reset),
-		string.format("Region: %s", self.region.state)
+		{text = "Name..:", value = self.name},
+		{text = "Type..:", value = self.type},
+		{text = "Health:", value = self.health, max = self.maxHealth},
+		{text = "Energy:", value = self.energy, max = self.maxEnergy},
+		{text = "Hunger:", value = self.hunger, max = self.maxHunger},
+		{text = "Thirst:", value = self.thirst, max = self.maxThirst},
+		{text = "Region:", value = self.region.state}
 	}
 
-	statsBox:addLine(lines)
+	for _, entry in ipairs(lines) do
+		local str
+
+		if type(entry.value) == "number" and entry.max then
+			local ratio = entry.value / entry.max
+			local color = ratio >= 0.6 and ansi.color.brightGreen or ratio >= 0.3 and ansi.color.brightYellow or ansi.color.red
+
+			str = string.format("%s %s%d%s", entry.text, color, entry.value, ansi.text.reset)
+		else
+			str = string.format("%s %s", entry.text, entry.value)
+		end
+
+		statsBox:addLine(str)
+	end
+
 	statsBox:display()
 	print()
 end
