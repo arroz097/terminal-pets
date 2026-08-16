@@ -1,5 +1,6 @@
 local ansi = require("lib.ansi")
 local util = require("lib.util")
+local tbl = require("lib.table")
 local fsm = require("lib.fsm")
 local box = require("lib.box")
 local signal = require("lib.signal")
@@ -10,6 +11,7 @@ local logs = require("systems.logs")
 
 local messages = require("data.messages")
 local items = require("data.items")
+local regions = require("data.regions")
 
 local printf = util.printf
 local writef = util.writef
@@ -20,9 +22,11 @@ local write = util.write
 ---@field maxHealth integer
 ---@field maxEnergy integer
 ---@field maxHunger integer
+---@field maxThirst integer
 ---@field health integer
 ---@field energy integer
 ---@field hunger integer
+---@field thirst integer
 ---@field type string
 ---@field logs logs
 ---@field inventory inventory
@@ -40,16 +44,18 @@ animal._type = "animal"
 ---@param maxEnergy? integer
 ---@param maxHunger? integer
 ---@return animal
-function animal.new(name, maxHealth, maxEnergy, maxHunger)
+function animal.new(name, maxHealth, maxEnergy, maxHunger, maxThirst)
 	local self = setmetatable({}, animal)
 
 	self.name = name
 	self.maxHealth = maxHealth or 100
 	self.maxEnergy = maxEnergy or 10
 	self.maxHunger = maxHunger or 10
+	self.maxThirst = maxThirst or 10
 	self.health = self.maxHealth
 	self.energy = self.maxEnergy
 	self.hunger = self.maxHunger
+	self.thirst = self.maxThirst
 
 	self.type = "none"
 	self.logs = logs.new()
@@ -83,18 +89,26 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	end
 
 	local actionCount = 0
+	local thirstCount = 0
 
 	self.Changed:Connect(function(attribute, action)
 		if self.onSignal then return end
 		self.onSignal = true
 
-		-- hunger decrease logic
+		-- stats decrease logic
 		if attribute == "energy" and action == "decrease" then
 			actionCount = actionCount + 1
 
 			if actionCount > 2 then
 				actionCount = 0
 				self:decreaseHunger(1)
+			end
+
+			thirstCount = thirstCount + 1
+
+			if thirstCount > 3 then
+				thirstCount = 0
+				self:decreaseThirst(1)
 			end
 		end
 
@@ -166,7 +180,6 @@ end
 function animal:increaseHealth(amount)
 	local oldHealth = self.health
 	self.health = math.min(self.maxHealth, self.health + amount)
-
 	if self.health ~= oldHealth then
 		self.Changed:Fire("health", "increase")
 	end
@@ -183,6 +196,29 @@ function animal:decreaseHealth(amount)
 
 	if self.health <= 0 then
 		self.Died:Fire()
+	end
+end
+
+---@param amount integer
+function animal:increaseThirst(amount)
+	local oldThirst = self.thirst
+	self.thirst = math.min(self.maxThirst, self.thirst + amount)
+	if self.thirst ~= oldThirst then
+		self.Changed:Fire("thirst", "increase")
+	end
+end
+
+---@param amount integer
+function animal:decreaseThirst(amount)
+	local oldThirst = self.thirst
+	self.thirst = math.max(0, self.thirst - amount)
+	if self.thirst ~= oldThirst then
+		self.Changed:Fire("thirst", "decrease")
+	end
+
+	if self.thirst <= 0 then
+		local damage = math.floor(self.maxHealth * 0.05) -- 5%
+		self:decreaseHealth(damage)
 	end
 end
 
@@ -290,6 +326,30 @@ function animal:eat(name)
 	else
 		printf("%s is not a food", item.name)
 	end
+end
+
+function animal:drink()
+	local currentRegion = regions:getRegions()[self.region.state]
+
+	if not currentRegion.resources or not currentRegion.resources.hasWater then
+		printf("%s has no water nearby", self.region.state)
+		self:addLog("searched for water")
+		return
+	end
+
+	if self.thirst >= self.maxThirst then
+		printf("%s is already on max %sthirst%s!", self.name, ansi.color.blue, ansi.text.reset)
+		self:addLog("tried to rehydrate while full")
+		return
+	end
+
+	util.animate("drinking")
+
+	self:increaseThirst(2)
+
+	printf("drank some water (%s+2 thirst%s)", ansi.color.blue, ansi.text.reset)
+
+	self:addLog("drank some water")
 end
 
 -- searchs for some food
@@ -422,10 +482,12 @@ function animal:showStats()
 	local healthRatio = self.health / self.maxHealth
 	local energyRatio = self.energy / self.maxEnergy
 	local hungerRatio = self.hunger / self.maxHunger
+	local thirstRatio = self.thirst / self.maxThirst
 
 	local energyColor = energyRatio >= 0.6 and ansi.color.brightGreen or energyRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
 	local hungerColor = hungerRatio >= 0.6 and ansi.color.brightGreen or hungerRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
 	local healthColor = healthRatio >= 0.6 and ansi.color.brightGreen or healthRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
+	local thirstColor = thirstRatio >= 0.6 and ansi.color.brightGreen or thirstRatio >= 0.3 and ansi.color.brightYellow or ansi.color.red
 
 	local statsBox = box.new()
 	statsBox.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
@@ -438,6 +500,7 @@ function animal:showStats()
 		string.format("Health: %s%d%s", healthColor, self.health, ansi.text.reset),
 		string.format("Energy: %s%d%s", energyColor, self.energy, ansi.text.reset),
 		string.format("Hunger: %s%d%s", hungerColor, self.hunger, ansi.text.reset),
+		string.format("Thirst: %s%d%s", thirstColor, self.thirst, ansi.text.reset),
 		string.format("Region: %s", self.region.state)
 	}
 
