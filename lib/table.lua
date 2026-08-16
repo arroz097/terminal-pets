@@ -1,5 +1,8 @@
 local table = {}
 
+---@param t table
+---@param value string
+---@return integer? index
 function table.find(t, value)
     for i, v in ipairs(t) do
         if v == value then
@@ -9,20 +12,26 @@ function table.find(t, value)
     return nil
 end
 
+---@param t table
 function table.clear(t)
     for k in pairs(t) do
         t[k] = nil
     end
 end
 
-function table.create(count, value)
+---@param quantity integer
+---@param value any
+---@return table table
+function table.create(quantity, value)
     local t = {}
-    for i = 1, count do
+    for i = 1, quantity do
         t[i] = value
     end
     return t
 end
 
+---@param t table
+---@return table clone
 function table.clone(t)
     local new = {}
     for k, v in pairs(t) do
@@ -31,10 +40,13 @@ function table.clone(t)
     return new
 end
 
+---@param t table
+---@param value any
+---@return boolean? success
 function table.removeValue(t, value)
-    local iterador = (t[1] ~= nil) and ipairs or pairs
+    local iterator = (t[1] ~= nil) and ipairs or pairs
 
-    for i, v in iterador(t) do
+    for i, v in iterator(t) do
         if v == value then
             if type(i) == "number" then
                 table.remove(t, i)
