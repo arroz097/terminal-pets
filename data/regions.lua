@@ -1,6 +1,6 @@
 local regions = {}
 
-regions.data = {
+local data = {
 	forest = {
 		dig = {
 			"bone",
@@ -23,6 +23,7 @@ regions.data = {
 		},
 	},
 	lake = {
+		resources = { hasWater = true },
 		dig = {
 			"smooth_stone",
 			"shell",
@@ -80,10 +81,20 @@ regions.data = {
 
 }
 
+---@return table<string, table> region
 function regions:getRegions()
 	local t = {}
-	for k in pairs(regions.data) do
-		table.insert(t, k)
+	for k, v in pairs(data) do
+		t[k] = v
+	end
+	return t
+end
+
+---@return table<string, boolean> name
+function regions:getRegionNames()
+	local t = {}
+	for k in pairs(data) do
+		t[k] = true
 	end
 	return t
 end

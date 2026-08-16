@@ -15,7 +15,7 @@ function loot.roll(region, action)
 	local roll = math.random(100)
 	local rarity, color
 
-	for _, name in ipairs(regions.data[region][action]) do
+	for _, name in ipairs(regions:getRegions()[region][action]) do
 		region_set[name] = true
 	end
 
