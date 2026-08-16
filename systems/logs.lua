@@ -3,7 +3,7 @@ local util = require("lib.util")
 local signal = require("lib.signal")
 
 ---@class logs
----@field owner animal
+---@field private owner animal
 ---@field pages table
 ---@field LogAdded signal
 local logs = {}
