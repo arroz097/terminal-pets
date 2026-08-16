@@ -550,12 +550,11 @@ end
 
 -- displays map navigation
 function animal:showMap()
-	local places = {
-		forest = "forest",
-		lake = "lake",
-		cave = "cave",
-		mountains = "mountains",
-	}
+	local places = {}
+
+	for key in pairs(regions:getRegionNames()) do
+		places[key] = key
+	end
 
 	if places[self.region.state] then
 		places[self.region.state] = string.format("%s%s%s%s", ansi.text.underline, ansi.text.bold, self.region.state, ansi.text.reset)
