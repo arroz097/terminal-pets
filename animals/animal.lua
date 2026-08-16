@@ -50,6 +50,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 	self.health = self.maxHealth
 	self.energy = self.maxEnergy
 	self.hunger = self.maxHunger
+
 	self.type = "none"
 	self.logs = logs.new()
 	self.inventory = inventory.new()
@@ -57,25 +58,29 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger)
 
 	self.region = self:startRegion("forest")
 
+	self.Changed = signal.new()
+	self.Died = signal.new()
+
+	local privatePrefixes = {"increase", "decrease", "has"}
 	self.private = {
 		__index = true,
 		_type = true,
 		new = true,
 		addLog = true,
 		getProperties = true,
-		increaseHunger = true,
-		decreaseHunger = true,
-		increaseEnergy = true,
-		decreaseEnergy = true,
-		increaseHealth = true,
-		decreaseHealth = true,
 		startRegion = true,
-		hasEnergy = true,
-		hasHunger = true,
 	}
 
-	self.Changed = signal.new()
-	self.Died = signal.new()
+	for k in pairs(animal) do
+		if type(k) ==  "string" then
+			for _, prefix in ipairs(privatePrefixes) do
+				if util.startsWith(k, prefix) then
+					self.private[k] = true
+					break
+				end
+			end
+		end
+	end
 
 	local actionCount = 0
 
