@@ -249,7 +249,7 @@ function animal:eat(name)
 		return
 	end
 
-	local item = util.findByPrefix(self.inventory.items, name, function(entry)
+	local item = util.findByPrefix(self.inventory:getItems(), name, function(entry)
 		return entry.name
 	end)
 
@@ -388,7 +388,7 @@ function animal:discard(name)
 		return
 	end
 
-	local item = util.findByPrefix(self.inventory.items, name, function(entry)
+	local item = util.findByPrefix(self.inventory:getItems(), name, function(entry)
 		return entry.name
 	end)
 
@@ -500,7 +500,7 @@ end
 
 -- displays animal stored items
 function animal:showInventory(...)
-	if #self.inventory.items <= 0 then
+	if self.inventory:getTotalItems() <= 0 then
 		printf("%s has no item to show up!", self.name)
 		return
 	end
@@ -537,7 +537,7 @@ function animal:showInventory(...)
 	inventoryBox.TitleAlignment = box.alignments.Center
 	local shown = {}
 
-	for _, entry in ipairs(self.inventory.items) do
+	for _, entry in ipairs(self.inventory:getItems()) do
 		local tags = ""
 
 		local passRarity = not filter.rarity or filter.rarity == "all" or entry.rarity == filter.rarity

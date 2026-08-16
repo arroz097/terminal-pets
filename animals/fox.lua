@@ -29,6 +29,7 @@ end
 
 ---@param name string
 function fox:steal(name)
+	---@type animal|nil
 	local victim, err = registry.get(name)
 	if not name then
 		print("no animal given to steal")
@@ -44,7 +45,7 @@ function fox:steal(name)
 		self:addLog("tried to steal itself")
 		return
 	end
-	if #victim.inventory <= 0 then
+	if victim.inventory:getTotalItems() <= 0 then
 		printf("%s has no item to apply the steal!", victim.name)
 		self:addLog("tried to steal %s but it had no item", victim.name)
 		return
