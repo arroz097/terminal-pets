@@ -106,8 +106,10 @@ end
 
 ---@param action string
 ---@param duration? integer
-function util.animate(action, duration)
+---@param speed? number
+function util.animate(action, duration, speed)
 	duration = duration or 1
+	speed = speed or 1
 
 	util.lockInput()
 	util.write(ansi.cursor.hide)
@@ -115,7 +117,7 @@ function util.animate(action, duration)
 
 		for i = 1, 3 do
 			util.writef("%s%s\r", action, string.rep(".", i))
-			util.sleep(1)
+			util.sleep(speed)
 		end
 
 		util.writef("%s    \r", action)
