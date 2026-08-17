@@ -81,7 +81,7 @@ repeat
 
 until command == "exit"
 
-writef("\nleaving %s...", name)
-util.sleep(1)
+print()
+util.animate("leaving " .. name, 1, 0.8)
 
 ansi:exitScreen()
