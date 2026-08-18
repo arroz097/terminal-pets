@@ -5,11 +5,30 @@ return {
 		[4] = "medium", [5] = "medium",
 	},
 
+	health = {
+		medium = {
+			"looks a little pale..",
+			"seems a bit under the weather..",
+			"moves a bit stiffly..",
+			"sneezes softly..",
+		},
+		low = {
+			"limps along slowly..",
+			"fur looks dull and rough..",
+			"breathes a little too hard..",
+		},
+		critical = {
+			"is gravely ill!",
+			"trembles weakly..",
+			"desperately needs care!",
+		},
+	},
+
 	hunger = {
 		medium = {
 			"seems hungry..",
 			"could use some food..",
-			"sniffs around for snacks..",
+			"its belly feels empty..",
 	},
 		low = {
 			"stomach growls..",
@@ -40,5 +59,24 @@ return {
 			"eyelids grow heavy..",
 			"can barely move..",
 		},
-	}
+	},
+
+	thirst = {
+		medium = {
+			"seems a little parched..",
+			"its nose feels dry..",
+			"swallows dryly..",
+			"its mouth is getting dry..",
+		},
+		low = {
+			"pants softly..",
+			"its lips are dry and cracked..",
+			"its tongue feels heavy..",
+		},
+		critical = {
+			"is desperately thirsty!",
+			"its mouth is bone dry..",
+			"can barely swallow..",
+		},
+	},
 }
