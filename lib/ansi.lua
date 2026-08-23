@@ -95,7 +95,14 @@ return {
 	---@param col integer
 	---@return string escape_code
 	moveTo = function(self, row, col)
-		return "\27["..row..";"..col.."H"
+		local coord = "\27["..col..";"..row.."H"
+		io.write(coord)
+		io.flush()
+		return coord
+	end,
+
+	moveToStr = function(self, row, col)
+		return "\27["..col..";"..row.."H"
 	end,
 
 }
