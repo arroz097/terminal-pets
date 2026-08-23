@@ -14,7 +14,7 @@ local visualLength = util.visualLength
 ---@field private lines table
 local box = {}
 box.__index = box
-box._type = "box"
+box._type = "Box"
 
 box.alignments = {
 	Left = "Left",
@@ -131,6 +131,11 @@ end
 ---@return boolean
 function box:isEmpty()
 	return #self.lines == 0
+end
+
+---@return integer maxLength
+function box:getLength()
+	return self.lineLength
 end
 
 function box:display()

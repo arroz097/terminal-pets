@@ -6,7 +6,7 @@ local util = require("lib.util")
 ---@field private items table
 local inventory = {}
 inventory.__index = inventory
-inventory._type = "inventory"
+inventory._type = "Inventory"
 
 ---@return inventory
 function inventory.new(owner)

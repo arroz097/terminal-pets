@@ -9,7 +9,7 @@ local printf = util.printf
 ---@class fox : animal
 local fox = setmetatable({}, {__index = animal})
 fox.__index = fox
-fox._type = "fox"
+fox._type = "Fox"
 
 ---@return fox
 ---@param name string

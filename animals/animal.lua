@@ -37,7 +37,7 @@ local write = util.write
 ---@field onSignal boolean
 local animal = {}
 animal.__index = animal
-animal._type = "animal"
+animal._type = "Animal"
 
 ---@param name string
 ---@param maxHealth? integer

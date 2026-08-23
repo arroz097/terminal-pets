@@ -1,6 +1,6 @@
-local ansi = require("lib.ansi")
 local util = require("lib.util")
 local signal = require("lib.signal")
+local tbl = require("lib.table")
 
 ---@class logs
 ---@field private owner animal
@@ -8,7 +8,7 @@ local signal = require("lib.signal")
 ---@field LogAdded signal
 local logs = {}
 logs.__index = logs
-logs._type = "logs"
+logs._type = "Logs"
 
 ---@return logs
 function logs.new(owner)
@@ -54,11 +54,13 @@ function logs:getPage(page)
 end
 
 function logs:clear()
+	tbl.clear(self.pages)
 	self.pages = {}
 end
 
 ---@return integer totalPages
 function logs:getTotalPages()
-	return util.getDictionaryLength(self.pages)end
+	return util.getDictionaryLength(self.pages)
+end
 
 return logs

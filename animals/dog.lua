@@ -9,7 +9,7 @@ local writef = util.writef
 ---@class dog : animal
 local dog = setmetatable({}, {__index = animal})
 dog.__index = dog
-dog._type = "dog"
+dog._type = "Dog"
 
 ---@param name string
 ---@return dog

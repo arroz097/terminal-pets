@@ -4,6 +4,7 @@
 ---@field callbacks table
 local fsm = {}
 fsm.__index = fsm
+fsm._type = "Fsm"
 
 ---@class fsm.connection
 ---@field _self fsm
@@ -11,6 +12,7 @@ fsm.__index = fsm
 ---@field _hook string
 local connection = {}
 connection.__index = connection
+connection._type = "Connetion"
 
 ---@param initialState string
 ---@return fsm

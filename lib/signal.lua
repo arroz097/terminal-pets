@@ -4,12 +4,14 @@ local ansi = require("lib.ansi")
 ---@field _listeners table
 local signal = {}
 signal.__index = signal
+signal._type = "Signal"
 
 ---@class connection
 ---@field _fn function
 ---@field _signal table
 local connection = {}
 connection.__index = connection
+connection._type = "Connection"
 
 ---@return connection
 function connection.new(fn, sig)
