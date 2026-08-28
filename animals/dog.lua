@@ -45,7 +45,7 @@ end
 -- -1 hunger
 function dog:fetch(item)
 	if not item then
-		print("nothing valid to %s fetch", self.name)
+		printf("nothing valid to %s fetch", self.name)
 		return
 	end
 
