@@ -56,13 +56,6 @@ end
 ---@param linePos integer
 function box:addSection(linePos)
 	self.sections[linePos] = true
-
-	--[[
-	for i = self.x + 1, self.x + self.width - 1 do
-		ansi:moveTo(i, self.y + linePos)
-		--write(self.RowChar)
-	end
-	]]
 end
 
 ---@private
@@ -75,14 +68,13 @@ function box:draw(buffer, cols, rows)
 	-- // Top
 
 	buffer[self.y][self.x] = self.CornerChar
+	buffer[self.y][right] = self.CornerChar
 
 	for x = self.x + 1, right - 1 do
 		buffer[self.y][x] = self.RowChar
 	end
 
 	-- // Left column
-
-	buffer[self.y][right] = self.CornerChar
 
 	for y = self.y + 1, bottom - 1 do
 		if self.sections[y - self.y] then
@@ -93,21 +85,11 @@ function box:draw(buffer, cols, rows)
 				buffer[y][x] = self.RowChar
 			end
 		else
-			assert(buffer[y], string.format(
-				"buffer[%d] é nil! self.y=%d height=%d buffer=%d",
-				y,
-				self.y,
-				self.height,
-				#buffer
-			))
-
 			buffer[y][self.x] = self.ColumnChar
 		end
 	end
 
 	-- // Right column
-
-	buffer[bottom][right] = self.CornerChar
 
 	for y = self.y + 1, bottom - 1 do
 		if self.sections[y - self.y] then
@@ -120,6 +102,7 @@ function box:draw(buffer, cols, rows)
 	--// Bottom
 
 	buffer[bottom][self.x] = self.CornerChar
+	buffer[bottom][right] = self.CornerChar
 
 	for x = self.x + 1, right - 1 do
 		buffer[bottom][x] = self.RowChar
