@@ -4,7 +4,9 @@ local tbl = require("lib.table")
 
 ---@class logs
 ---@field private owner animal
----@field pages table
+---@field private pages table
+---@field private page integer
+---@field private count integer
 ---@field LogAdded signal
 local logs = {}
 logs.__index = logs
@@ -17,26 +19,30 @@ function logs.new(owner)
 	self.owner = owner
 	self.pages = {}
 
+	self.page = 1
+	self.count = 0
+
 	self.LogAdded = signal.new()
 
-	local page = 1
-	local count = 0
-
-	self.LogAdded:Connect(function(action)
-		if count >= 10 then
-			page = page + 1
-			count = 0
-		end
-
-		if not self.pages[page] then
-			self.pages[page] = {}
-		end
-
-		count = count + 1
-		self.pages[page][count] = action
-	end)
+	self:setupSignal()
 
 	return self
+end
+
+function logs:setupSignal()
+	self.LogAdded:Connect(function(action)
+		if self.count >= 10 then
+			self.page = self.page + 1
+			self.count = 0
+		end
+
+		if not self.pages[self.page] then
+			self.pages[self.page] = {}
+		end
+
+		self.count = self.count + 1
+		self.pages[self.page][self.count] = action
+	end)
 end
 
 ---@param action string
@@ -55,6 +61,8 @@ end
 
 function logs:clear()
 	tbl.clear(self.pages)
+	self.page = nil
+	self.count = nil
 	self.pages = {}
 end
 

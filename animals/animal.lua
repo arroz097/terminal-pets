@@ -52,6 +52,7 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger, maxThirst)
 	self.maxEnergy = maxEnergy or 10
 	self.maxHunger = maxHunger or 10
 	self.maxThirst = maxThirst or 10
+
 	self.health = self.maxHealth
 	self.energy = self.maxEnergy
 	self.hunger = self.maxHunger
@@ -67,14 +68,13 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger, maxThirst)
 	self.Changed = signal.new()
 	self.Died = signal.new()
 
-	local privatePrefixes = {"increase", "decrease", "has"}
+	local privatePrefixes = {"increase", "decrease", "has", "setup", "start"}
 	self.private = {
 		__index = true,
 		_type = true,
 		new = true,
 		addLog = true,
 		getProperties = true,
-		startRegion = true,
 	}
 
 	for k in pairs(animal) do
@@ -88,6 +88,12 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger, maxThirst)
 		end
 	end
 
+	self:setupSignal()
+
+	return self
+end
+
+function animal:setupSignal()
 	local actionCount = 0
 	local thirstCount = 0
 
@@ -125,8 +131,6 @@ function animal.new(name, maxHealth, maxEnergy, maxHunger, maxThirst)
 			self:addLog("said something..")
 		end
 	end)
-
-	return self
 end
 
 ---@param action string
