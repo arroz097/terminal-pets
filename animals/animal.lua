@@ -2,7 +2,7 @@ local ansi = require("lib.ansi")
 local util = require("lib.util")
 local tbl = require("lib.table")
 local fsm = require("lib.fsm")
-local box = require("lib.box")
+local panel = require("lib.panel")
 local signal = require("lib.signal")
 
 local inventory = require("systems.inventory")
@@ -343,7 +343,7 @@ function animal:drink()
 		return
 	end
 
-	util.animate("drinking")
+	util.animate("drinking water")
 
 	self:increaseThirst(2)
 
@@ -478,10 +478,10 @@ end
 
 -- return current animal stats.
 function animal:showStats()
-	local statsBox = box.new()
-	statsBox.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
-	statsBox.TitleAlignment = box.alignments.Center
-	statsBox.MinWidth = 15
+	local statsPanel = panel.new()
+	statsPanel.Title = string.format("%sStats%s", ansi.text.bold, ansi.text.reset)
+	statsPanel.TitleAlignment = panel.alignments.Center
+	statsPanel.MinWidth = 15
 
 	local lines = {
 		{text = "Name..:", value = self.name},
@@ -505,10 +505,10 @@ function animal:showStats()
 			str = string.format("%s %s", entry.text, entry.value)
 		end
 
-		statsBox:addLine(str)
+		statsPanel:addLine(str)
 	end
 
-	statsBox:display()
+	statsPanel:display()
 	print()
 end
 
@@ -539,15 +539,15 @@ function animal:showLogs(page)
 
 	writef("\npage (%d/%d)", page, self.logs:getTotalPages())
 
-	local logsBox = box.new()
-	logsBox.Title = string.format("%s%s log history%s", ansi.text.bold, self.name, ansi.text.reset)
-	logsBox.TitleAlignment = box.alignments.Center
+	local logsPanel = panel.new()
+	logsPanel.Title = string.format("%s%s log history%s", ansi.text.bold, self.name, ansi.text.reset)
+	logsPanel.TitleAlignment = panel.alignments.Center
 
 	for _, log in ipairs(givenPage) do
-		logsBox:addLine(log)
+		logsPanel:addLine(log)
 	end
 
-	logsBox:display()
+	logsPanel:display()
 	print()
 end
 
@@ -602,9 +602,9 @@ function animal:showInventory(...)
 		end
 	end
 
-	local inventoryBox = box.new()
-	inventoryBox.Title = string.format("%s%s inventory%s", ansi.text.bold, self.name, ansi.text.reset)
-	inventoryBox.TitleAlignment = box.alignments.Center
+	local inventoryPanel = panel.new()
+	inventoryPanel.Title = string.format("%s%s inventory%s", ansi.text.bold, self.name, ansi.text.reset)
+	inventoryPanel.TitleAlignment = panel.alignments.Center
 	local shown = {}
 
 	for _, entry in ipairs(self.inventory:getItems()) do
@@ -622,15 +622,15 @@ function animal:showInventory(...)
 
 		if not shown[entry.name] and passRarity and passType then
 			shown[entry.name] = true
-			inventoryBox:addLine(string.format("%s x%d %s", entry.name, entry.quantity, tags))
+			inventoryPanel:addLine(string.format("%s x%d %s", entry.name, entry.quantity, tags))
 		end
 	end
 
-	if inventoryBox:isEmpty() then
-		inventoryBox:addLine("nothing here..")
+	if inventoryPanel:isEmpty() then
+		inventoryPanel:addLine("nothing here..")
 	end
 
-	inventoryBox:display()
+	inventoryPanel:display()
 	print()
 end
 
