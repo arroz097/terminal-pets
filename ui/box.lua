@@ -58,6 +58,32 @@ function box:addSection(linePos)
 	self.sections[linePos] = true
 end
 
+---@return integer width
+function box:getWidth()
+	return self.width
+end
+
+---@return integer height
+function box:getHeight()
+	return self.height
+end
+
+---@return integer x
+function box:getX()
+	return self.x
+end
+
+---@return integer y
+function box:getY()
+	return self.y
+end
+
+---@return integer x
+---@return integer y
+function box:getPosition()
+	return self.x, self.y
+end
+
 ---@private
 ---@param buffer Buffer
 function box:draw(buffer, cols, rows)

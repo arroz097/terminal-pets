@@ -83,6 +83,7 @@ function text:readInput(index)
 
 	write(ansi.cursor.show)
 	ansi:moveTo(self.x + #str, self.y + line.offset)
+
 	while true do
 		local char = io.read(1)
 		if char == "\n" or char == "\r" then break end
@@ -124,6 +125,28 @@ function text:reset()
 	self.gap = 0
 end
 
+---@param index integer
+---@return string text
+function text:getText(index)
+	return self.lines[index].text
+end
+
+---@return integer x
+function text:getX()
+	return self.x
+end
+
+---@return integer y
+function text:getY()
+	return self.y
+end
+
+---@return integer x
+---@return integer y
+function text:getPosition()
+	return self.x, self.y
+end
+
 ---@private
 ---@param buffer Buffer
 function text:draw(buffer)
@@ -138,15 +161,6 @@ function text:draw(buffer)
 		end
 
 		for i = 1, #clean do
-
-			assert(buffer[self.y + line.offset], string.format(
-				"buffer[%d] é nil! self.y=%d\nbuffer size: %d",
-				self.y + line.offset,
-				self.y,
-				#buffer
-			))
-
-
 			buffer[self.y + line.offset][self.x + i - 1] = {
 				char = string.sub(clean, i, i) ,
 				format = i == 1 and formats or {},
