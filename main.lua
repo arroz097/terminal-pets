@@ -7,6 +7,12 @@ local util = require("lib.util")
 local printf = util.printf
 local writef = util.writef
 
+if util.isWindows() then
+    print("Terminal Pets requires Linux/macOS or WSL.")
+    print("Windows is not supported.")
+    os.exit(1)
+end
+
 local animals = {
 	cat = require("animals.cat"),
 	dog = require("animals.dog"),
