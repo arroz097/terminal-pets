@@ -59,36 +59,36 @@ end
 
 ---@private
 ---@param str string
----@return integer space
-function panel:getSpace(str)
+---@return integer padding
+function panel:getPadding(str)
 	local inner = self.lineLength - 4
-	local space = inner - visualLength(str)
-	return space
+	local padding = inner - visualLength(str)
+	return padding
 end
 
 ---@private
----@param space integer
+---@param padding integer
 ---@param align string
 ---@return integer left
 ---@return integer right
-function panel:getAlignment(space, align)
+function panel:getAlignment(padding, align)
 	local left, right
 
 	if align == panel.alignments.Center or align == "Center" then
-		left, right = math.floor(space / 2), math.ceil(space / 2)
+		left, right = math.floor(padding / 2), math.ceil(padding / 2)
 	elseif align == panel.alignments.Right or align == "Right" then
-		left, right = space, 0
+		left, right = padding, 0
 	else
-		left, right = 0, space
+		left, right = 0, padding
 	end
 
 	return left, right
 end
 
----@class box.lineGroup
+---@class panel.lineGroup
 ---@field align function
 ---@param ... string|table
----@return box.lineGroup?
+---@return panel.lineGroup?
 function panel:addLine(...)
 	local args = {...}
 	local inserted = {}
@@ -105,7 +105,7 @@ function panel:addLine(...)
 
 		for _, line in ipairs(lines) do
 			if type(line) ~= "string" then
-				print("box: addLine string only")
+				print("panel: addLine string only")
 				return
 			end
 			local lineTable = {text = line, alignment = panel.alignments.Left}
@@ -144,8 +144,8 @@ function panel:display()
 	if not self.HasTitle then
 		printf("%s", string.rep(self.RowChar, self.lineLength))
 	else
-		local space = self:getSpace(self.Title)
-		local left, right = self:getAlignment(space, self.TitleAlignment)
+		local padding = self:getPadding(self.Title)
+		local left, right = self:getAlignment(padding, self.TitleAlignment)
 
 		printf("\n%s", string.rep(self.RowChar, self.lineLength))
 		printf("%s %s%s%s %s", self.ColumnChar, string.rep(" ", left), self.Title, string.rep(" ", right), self.ColumnChar)
@@ -153,8 +153,8 @@ function panel:display()
 	end
 
 	for _, line in ipairs(self.lines) do
-		local space = self:getSpace(line.text)
-		local left, right = self:getAlignment(space, line.alignment)
+		local padding = self:getPadding(line.text)
+		local left, right = self:getAlignment(padding, line.alignment)
 
 		printf("%s %s%s%s %s", self.ColumnChar, string.rep(" ", left), line.text, string.rep(" ", right), self.ColumnChar)
 	end
