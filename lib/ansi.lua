@@ -70,21 +70,21 @@ return {
 		brightWhite   = "\27[107m",
 	},
 
-	-- clears terminal screen and scrollback.
-	-- combines clear + clearScrollback + cursor.home
+	--- clears terminal screen and scrollback.
+	--- combines clear + clearScrollback + cursor.home
 	clearScreen = function(self)
 		io.write(self.clear, self.clearScrollback, self.cursor.home)
 		io.flush()
 	end,
 
-	-- enters the alternate screen buffer.
-	-- should be called at the start, paired with exitScreen.
+	--- enters the alternate screen buffer.
+	--- should be called at the start, paired with exitScreen.
 	enterScreen = function(self)
 		io.write(self.saveScreen)
 		self:clearScreen()
 	end,
 
-	-- exits the alternate screen buffer.
+	--- exits the alternate screen buffer.
 	exitScreen = function(self)
 		io.write(self.restoreScreen)
 		io.flush()
@@ -101,6 +101,30 @@ return {
 		return coord
 	end,
 
+	--- moves cursor to X position
+	---@param col integer
+	---@return string escape_code
+	moveToX = function(self, col)
+		local coord = "\27[" .. col .. "G"
+		io.write(coord)
+		io.flush()
+		return coord
+	end,
+
+	--- moves cursor to Y position
+	---@param row integer
+	---@return string escape_code
+	moveToY = function(self, row)
+		local coord = "\27[" .. row .. "d"
+		io.write(coord)
+		io.flush()
+		return coord
+	end,
+
+	--- returns a escape code position
+	---@param row integer
+	---@param col integer
+	---@return string escape_code
 	moveToStr = function(self, row, col)
 		return "\27["..col..";"..row.."H"
 	end,
