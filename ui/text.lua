@@ -9,6 +9,7 @@ local write = util.write
 ---@field private x integer
 ---@field private y integer
 ---@field Changed signal
+---@field _inputSetup? boolean
 ---@field ui? ui
 local text = {}
 text.__index = text
@@ -79,6 +80,11 @@ end
 ---@param index integer
 ---@return any result
 function text:readInput(index)
+	if not self._inputSetup then
+		print("readInput requires setupInput")
+		return
+	end
+
 	local line = self.lines[index]
 	local str = line.text
 
@@ -99,7 +105,7 @@ function text:readInput(index)
 		end
 
 		self:editLine(index, str .. input)
-		self.Changed:Fire()
+		--self.Changed:Fire()
 
 		if self.ui then
 			self.ui:render()

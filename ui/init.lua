@@ -133,6 +133,8 @@ function ui:setupInput(component)
 		error("Component is missing Changed signal: " .. tostring(component))
 	end
 
+	component._inputSetup = true
+
 	component.Changed:Connect(function()
 		self:render()
 	end)
