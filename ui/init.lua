@@ -24,6 +24,9 @@ ui._type = "Ui"
 
 ---@return ui
 function ui.new()
+	local size = io.popen("tput cols; tput lines"):read("*a")
+	local cols, rows = size:match("(%d+)\n(%d+)")
+
 	return setmetatable({
 		components = {},
 		currentBuffer = {},
@@ -31,6 +34,9 @@ function ui.new()
 
 		ComponentAdded = signal.new(),
 		ComponentRemoved = signal.new(),
+
+		cols = tonumber(cols),
+		rows = tonumber(rows),
 	}, ui)
 end
 
@@ -43,11 +49,8 @@ function ui:add(...)
 end
 
 function ui:render()
-	local cols = tonumber(io.popen("tput cols"):read())
-	local rows = tonumber(io.popen("tput lines"):read())
-
 	self.currentBuffer = {}
-	for y = 1, rows do
+	for y = 1, self.rows do
 		self.currentBuffer[y] = {}
 		if not self.previousBuffer[y] then
 			self.previousBuffer[y] = {}
@@ -55,10 +58,10 @@ function ui:render()
 	end
 
 	for _, component in ipairs(self.components) do
-		component:draw(self.currentBuffer, cols, rows)
+		component:draw(self.currentBuffer, self.cols, self.rows)
 	end
 
-	self:flush(cols, rows)
+	self:flush(self.cols, self.rows)
 end
 
 ---@private
@@ -101,6 +104,13 @@ function ui:flush(cols, rows)
 	write(table.concat(parts))
 
 	self.previousBuffer = self.currentBuffer
+end
+
+function ui:resize()
+    local size = io.popen("tput cols; tput lines"):read("*a")
+    local cols, rows = size:match("(%d+)\n(%d+)")
+    self.cols = tonumber(cols)
+    self.rows = tonumber(rows)
 end
 
 function ui:clear()
