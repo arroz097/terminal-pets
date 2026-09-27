@@ -46,6 +46,8 @@ function text:addLine(str, gap)
 	gap = gap or 0
 	self.gap = (self.gap or 0) + gap
 
+	self.Changed:Fire()
+
 	if #self.lines <= 0 then
 		table.insert(self.lines, {text = str, offset = #self.lines + self.gap})
 		return #self.lines
@@ -59,6 +61,7 @@ end
 ---@param str string
 function text:editLine(index, str)
 	self.lines[index].text = str
+	self.Changed:Fire()
 end
 
 ---@param index integer
@@ -69,6 +72,8 @@ function text:removeLine(index)
 	for i = index, #self.lines do
 		self.lines[i].offset = self.lines[i].offset - 1
 	end
+
+	self.Changed:Fire()
 end
 
 ---@param index integer
@@ -118,11 +123,13 @@ end
 function text:moveTo(x, y)
 	self.x = x
 	self.y = y
+	self.Changed:Fire()
 end
 
 function text:reset()
 	self.lines = {}
 	self.gap = 0
+	self.Changed:Fire()
 end
 
 ---@param index integer
@@ -161,10 +168,13 @@ function text:draw(buffer)
 		end
 
 		for i = 1, #clean do
-			buffer[self.y + line.offset][self.x + i - 1] = {
+			local ty = math.floor(self.y + line.offset)
+			local tx = math.floor(self.x + i - 1)
+
+			buffer[ty][tx] = {
 				char = string.sub(clean, i, i) ,
 				format = i == 1 and formats or {},
-				reset = i == #clean and ansi.text.reset
+				reset = i == #clean and ansi.text.reset or nil
 			}
 		end
 	end

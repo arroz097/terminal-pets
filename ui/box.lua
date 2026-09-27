@@ -1,3 +1,5 @@
+local signal = require("lib.signal")
+
 ---@class box
 ---@field private x integer
 ---@field private y integer
@@ -7,6 +9,7 @@
 ---@field RowChar string
 ---@field ColumnChar string
 ---@field CornerChar string
+---@field Changed signal
 local box = {}
 box.__index = box
 box._type = "Box"
@@ -32,6 +35,8 @@ function box.new(x, y, width, height, ui)
 
 	self.sections = {}
 
+	self.Changed = signal.new()
+
 	if ui then
 		ui:add(self)
 	end
@@ -44,6 +49,7 @@ end
 function box:resize(width, height)
 	self.width = width
 	self.height = height
+	self.Changed:Fire("size")
 end
 
 ---@param x integer
@@ -51,11 +57,13 @@ end
 function box:moveTo(x, y)
 	self.x = x
 	self.y = y
+	self.Changed:Fire("position")
 end
 
 ---@param linePos integer
 function box:addSection(linePos)
 	self.sections[linePos] = true
+	self.Changed:Fire("section")
 end
 
 ---@return integer width
@@ -88,37 +96,40 @@ end
 ---@param buffer Buffer
 function box:draw(buffer, cols, rows)
 
-	local right = math.min(self.x + self.width, cols)
-	local bottom = math.min(self.y + self.height, rows)
+	local bx = math.floor(self.x)
+	local by = math.floor(self.y)
+
+	local right = math.min(bx + self.width, cols)
+	local bottom = math.min(by + self.height, rows)
 
 	-- // Top
 
-	buffer[self.y][self.x] = self.CornerChar
-	buffer[self.y][right] = self.CornerChar
+	buffer[by][bx] = self.CornerChar
+	buffer[by][right] = self.CornerChar
 
-	for x = self.x + 1, right - 1 do
-		buffer[self.y][x] = self.RowChar
+	for x = bx + 1, right - 1 do
+		buffer[by][x] = self.RowChar
 	end
 
 	-- // Left column
 
-	for y = self.y + 1, bottom - 1 do
-		if self.sections[y - self.y] then
-			buffer[y][self.x] = self.CornerChar
+	for y = by + 1, bottom - 1 do
+		if self.sections[y - by] then
+			buffer[y][bx] = self.CornerChar
 
 			--// Section row
-			for x = self.x + 1, right - 1 do
+			for x = bx + 1, right - 1 do
 				buffer[y][x] = self.RowChar
 			end
 		else
-			buffer[y][self.x] = self.ColumnChar
+			buffer[y][bx] = self.ColumnChar
 		end
 	end
 
 	-- // Right column
 
-	for y = self.y + 1, bottom - 1 do
-		if self.sections[y - self.y] then
+	for y = by + 1, bottom - 1 do
+		if self.sections[y - by] then
 			buffer[y][right] = self.CornerChar
 		else
 			buffer[y][right] = self.ColumnChar
@@ -127,10 +138,10 @@ function box:draw(buffer, cols, rows)
 
 	--// Bottom
 
-	buffer[bottom][self.x] = self.CornerChar
+	buffer[bottom][bx] = self.CornerChar
 	buffer[bottom][right] = self.CornerChar
 
-	for x = self.x + 1, right - 1 do
+	for x = bx + 1, right - 1 do
 		buffer[bottom][x] = self.RowChar
 	end
 end
