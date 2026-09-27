@@ -4,8 +4,13 @@ local signal = require("lib.signal")
 
 local write = util.write
 
+---@class BufferCell
+---@field char string
+---@field format table
+---@field reset string|nil
+
 ---@class Buffer
----@field [integer] table<integer, string>
+---@field [integer] table<integer, BufferCell|string>
 
 ---@class ui
 ---@field private components table
@@ -35,12 +40,12 @@ function ui:add(...)
 		table.insert(self.components, component)
 		self.ComponentAdded:Fire(component)
 	end
-
 end
 
 function ui:render()
 	local cols = tonumber(io.popen("tput cols"):read())
 	local rows = tonumber(io.popen("tput lines"):read())
+
 	self.currentBuffer = {}
 	for y = 1, rows do
 		self.currentBuffer[y] = {}
@@ -58,7 +63,7 @@ end
 
 ---@private
 function ui:flush(cols, rows)
-	local result = ""
+	local parts = {}
 
 	for y = 1, rows do
 		for x = 1, cols do
@@ -74,26 +79,26 @@ function ui:flush(cols, rows)
 				changed = not prev or type(prev) ~= "table" or prev.char ~= cell.char or currentFormat ~= previousFormat
 			elseif type(cell) == "string" then
 				changed = cell ~= prev
-
 			else
 				changed = cell ~= prev
 			end
 
 			if changed then
-				result = result .. ansi:moveToStr(x, y)
-
+				table.insert(parts, ansi:moveToStr(x, y))
 				if type(cell) == "table" then
-					result = result .. table.concat(cell.format) .. cell.char .. (cell.reset or "")
+					table.insert(parts, table.concat(cell.format))
+					table.insert(parts, cell.char)
+					table.insert(parts, cell.reset or "")
 				elseif type(cell) == "string" then
-					result = result .. cell
+					table.insert(parts, cell)
 				else
-					result = result .. " "
+					table.insert(parts, " ")
 				end
 			end
 		end
 	end
 
-	write(result)
+	write(table.concat(parts))
 
 	self.previousBuffer = self.currentBuffer
 end
