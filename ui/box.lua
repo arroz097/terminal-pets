@@ -1,6 +1,7 @@
 local signal = require("lib.signal")
 
 ---@class box
+---@field private _children table
 ---@field private x integer
 ---@field private y integer
 ---@field private width integer
@@ -23,6 +24,8 @@ box._type = "Box"
 function box.new(x, y, width, height, ui)
 	local self = setmetatable({}, box)
 
+	self._children = {}
+
 	self.x = x or 1
 	self.y = y or 1
 
@@ -42,6 +45,13 @@ function box.new(x, y, width, height, ui)
 	end
 
 	return self
+end
+
+function box:addChild(...)
+	for _, component in ipairs({...}) do
+		component._parent = self
+		table.insert(self._children, component)
+	end
 end
 
 ---@param width integer

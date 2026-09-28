@@ -50,6 +50,7 @@ end
 
 function ui:render()
 	self.currentBuffer = {}
+
 	for y = 1, self.rows do
 		self.currentBuffer[y] = {}
 		if not self.previousBuffer[y] then
@@ -59,6 +60,14 @@ function ui:render()
 
 	for _, component in ipairs(self.components) do
 		component:draw(self.currentBuffer, self.cols, self.rows)
+
+		if component._children then
+			for _, child in ipairs(component._children) do
+				child.x = component.x + child.x
+				child.y = component.y + child.y
+				child:draw(self.currentBuffer, self.cols, self.rows)
+			end
+		end
 	end
 
 	self:flush(self.cols, self.rows)
